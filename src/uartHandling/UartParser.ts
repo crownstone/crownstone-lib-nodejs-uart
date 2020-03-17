@@ -94,7 +94,6 @@ export class UartParser {
       console.log("LOG:", new Date().valueOf(),":"+stringResult)
     }
     else if (opCode == UartRxType.UART_MESSAGE) {
-      console.log("UartMessage")
       eventBus.emit("UartMessage", {string: dataPacket.payload.toString(), data: dataPacket.payload})
     }
     else {

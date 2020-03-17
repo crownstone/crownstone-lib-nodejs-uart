@@ -10,7 +10,7 @@
   "types": "dist/index.d.ts",
   "dependencies": {
     "aes-js": "^3.1.1",
-    "bluenet-nodejs-lib-core": "file:../BluenetCore",
+    "bluenet-nodejs-lib-core": "file:../bluenet-nodejs-lib-core",
     "serialport": "^8.0.7"
   },
   "devDependencies": {

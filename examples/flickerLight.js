@@ -4,19 +4,17 @@ let bluenet = new Bluenet.BluenetUart()
 
 let asyncInit = async function() {
   await bluenet.start()
-  await bluenet.switchCrownstone(1, 1);
+  await bluenet.switchCrownstone(37, 1);
   await bluenet.close();
-  await bluenet.delay(200);
+  await bluenet.delay(1000);
 }
 
 let promiseInit = function() {
   return bluenet.start()
-    .then(() => { return bluenet.switchCrownstone(1, 0); })
+    .then(() => { return bluenet.switchCrownstone(37, 0); })
     .then(() => { return bluenet.close(); })
-    .then(() => { return bluenet.delay(200); })
+    .then(() => { return bluenet.delay(1000); })
 }
-
-
 
 
 // we can use the lib with async functions like so:

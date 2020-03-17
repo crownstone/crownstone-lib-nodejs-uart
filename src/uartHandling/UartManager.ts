@@ -64,14 +64,21 @@ export class UartManager {
       let portPaths = Object.keys(this.ports);
 
       return Util.promiseBatchPerformer(portPaths, (path) => {
-        if (this.ports[path].port?.manufacturer === "Silicon Labs" || this.ports[path].port?.manufacturer === "SEGGER") {
+        // we use indexOf to check if a part of this string is in the manufacturer. It cah possibly differ between platforms.
+        if (this.ports[path].port?.manufacturer.indexOf("Silicon Lab") !== -1 || this.ports[path].port?.manufacturer.indexOf("SEGGER") !== -1) {
           if (this.triedPaths.indexOf(path) === -1) {
             return this._tryPath(path);
           }
         }
         return Promise.resolve();
       })
-    });
+    })
+      .then(() => {
+        // Handle the case where none of the connected devices match.
+        if (this.port === null) {
+          throw "COULD_NOT_OPEN_CONNECTION_TO_UART"
+        }
+      });
   }
 
   _tryPath(path)  : Promise<void> {
@@ -92,7 +99,6 @@ export class UartManager {
             success = true;
             clearTimeout(closeTimeout);
             unsubscribe();
-
             resolve();
           }})
         let closeTimeout = setTimeout(() => {
@@ -100,6 +106,7 @@ export class UartManager {
             unsubscribe();
             this.port.close(() => {
               // try another.
+              this.port = null;
               this._openPort()
                 .then(() => { resolve(); })
                 .catch((err) => { reject(err); })

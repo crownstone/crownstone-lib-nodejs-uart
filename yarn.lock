@@ -753,7 +753,7 @@ bl@^3.0.0:
   dependencies:
     readable-stream "^3.0.1"
 
-"bluenet-nodejs-lib-core@file:../BluenetCore":
+"bluenet-nodejs-lib-core@file:../bluenet-nodejs-lib-core":
   version "0.3.0"
   dependencies:
     aes-js "^3.1.1"
