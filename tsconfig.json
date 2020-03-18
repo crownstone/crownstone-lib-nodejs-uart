@@ -7,7 +7,8 @@
     "sourceMap": true,
     "outDir": "dist",
     "baseUrl": "index.ts",
-    "rootDir": "src"
+    "rootDir": "src",
+    "declaration": true
   },
   "include": [
     "src/"

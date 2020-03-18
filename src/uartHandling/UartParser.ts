@@ -23,7 +23,6 @@ export class UartParser {
       let serviceData = new ServiceData(dataPacket.payload, true);
       serviceData.parse(true)
       if (serviceData.validData) {
-        console.log(new Date().toLocaleString(), "Got Mesh service data from:", serviceData.crownstoneId, serviceData.switchState)
         eventBus.emit("MeshServiceData", serviceData.getJSON())
       }
       else {

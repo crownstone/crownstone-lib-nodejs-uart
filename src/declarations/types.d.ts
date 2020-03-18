@@ -8,7 +8,10 @@ interface keyMap {
   meshAppKey      : string,
 }
 
-
+interface SwitchPair {
+  crownstoneId: number,
+  switchState: number
+}
 
 
 
