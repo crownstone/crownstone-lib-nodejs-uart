@@ -50,7 +50,6 @@ export class UartLinkManager {
     }
   }
 
-
   close() : Promise<void> {
     return this.port.destroy();
   }
@@ -109,6 +108,9 @@ export class UartLinkManager {
     })
   }
 
+  echo(data) {
+    this.port.echo(data);
+  }
   write(data) {
     this.port.write(data);
   }

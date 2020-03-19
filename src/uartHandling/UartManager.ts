@@ -37,15 +37,6 @@ export class UartManager {
     this.link = new UartLinkManager(autoReconnect);
   }
 
-  echo(string) {
-    let controlPacket = new ControlPacket(ControlType.UART_MESSAGE).loadString(string).getPacket()
-    // finally wrap it in an Uart packet
-    let uartPacket = new UartWrapper(UartTxType.CONTROL, controlPacket).getPacket();
-
-    this.link.write(uartPacket);
-  }
-
-
   switchCrownstones(switchPairs : SwitchPair[]) : Promise<void> {
     // create a stone switch state packet to go into the multi switch
     let packets : StoneMultiSwitchPacket[] = [];
@@ -67,7 +58,6 @@ export class UartManager {
 
     return new Promise((resolve, reject) => { setTimeout(() => { resolve() }, 100); });
   }
-
 
   registerTrackedDevice(
     trackingNumber:number,

@@ -19,7 +19,7 @@ export class BluenetUart {
   }
 
   uartEcho(string : string) {
-    this.uart.echo(string)
+    this.uart.link.echo(string)
   }
 
   on(topic : string, callback : (data: any) => void) : () => void {

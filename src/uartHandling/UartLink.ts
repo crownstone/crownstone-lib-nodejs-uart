@@ -30,7 +30,8 @@ export class UartLink {
 
   destroy() : Promise<void> {
     return new Promise((resolve, reject) => {
-      this.port.close(() => { this.cleanup(); resolve(); });
+      this.cleanup()
+      this.port.close(() => { resolve(); });
     })
   }
 

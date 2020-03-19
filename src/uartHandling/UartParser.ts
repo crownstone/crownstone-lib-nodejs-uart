@@ -9,8 +9,6 @@ export class UartParser {
   static parse(dataPacket : UartPacket) {
     let opCode = dataPacket.opCode;
     let parsedData = null;
-//        console.log("UART - opCode) {", opCode, "payload) {", dataPacket.payload)
-
     if (opCode == UartRxType.SERVICE_DATA) {
       // console.log("Got Own service data")
       let serviceData = new ServiceData(dataPacket.payload)
