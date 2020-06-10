@@ -1,6 +1,6 @@
 {
-  "name": "bluenet-nodejs-lib-uart",
-  "version": "0.3.0",
+  "name": "crownstone-uart",
+  "version": "0.4.0",
   "scripts": {
     "start": "tsc -watch",
     "test": "jest --useStderr --clearMocks",
@@ -10,7 +10,7 @@
   "types": "dist/index.d.ts",
   "dependencies": {
     "aes-js": "^3.1.1",
-    "bluenet-nodejs-lib-core": "file:../bluenet-nodejs-lib-core",
+    "crownstone-core": "file:../crownstone-lib-nodejs-core",
     "serialport": "^8.0.7"
   },
   "devDependencies": {

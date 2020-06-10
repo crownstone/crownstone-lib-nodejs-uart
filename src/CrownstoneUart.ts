@@ -3,7 +3,7 @@ import {eventBus} from "./singletons/EventBus";
 
 
 
-export class BluenetUart {
+export class CrownstoneUart {
   uart : UartManager
 
   constructor() {

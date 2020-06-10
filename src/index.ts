@@ -1,3 +1,5 @@
-import {BluenetUart} from "./BluenetUart";
+/// <reference path="./declarations/declarations.d.ts" />
 
-export { BluenetUart };
+import {CrownstoneUart} from "./CrownstoneUart";
+
+export { CrownstoneUart };

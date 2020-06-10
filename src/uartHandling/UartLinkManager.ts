@@ -10,7 +10,7 @@ import {
   MeshMultiSwitchPacket,
   Util,
   ControlPacketsGenerator
-} from "bluenet-nodejs-lib-core";
+} from "crownstone-core";
 import {UartTxType} from "../declarations/enums";
 import {UartWrapper} from "./uartPackets/UartWrapper";
 import {UartLink} from "./UartLink";

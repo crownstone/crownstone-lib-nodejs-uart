@@ -2,7 +2,7 @@
  * Wrapper for all relevant data of the object
  *
  */
-import {DataStepper} from "bluenet-nodejs-lib-core/dist/util/DataStepper";
+import {DataStepper} from "crownstone-core/dist/util/DataStepper";
 
 export class UartPacket {
   opCode  : number;

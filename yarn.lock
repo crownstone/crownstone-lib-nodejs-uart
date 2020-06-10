@@ -753,11 +753,6 @@ bl@^3.0.0:
   dependencies:
     readable-stream "^3.0.1"
 
-"bluenet-nodejs-lib-core@file:../bluenet-nodejs-lib-core":
-  version "0.3.0"
-  dependencies:
-    aes-js "^3.1.1"
-
 brace-expansion@^1.1.7:
   version "1.1.11"
   resolved "https://registry.yarnpkg.com/brace-expansion/-/brace-expansion-1.1.11.tgz#3c7fcbf529d87226f3d2f52b966ff5271eb441dd"
@@ -1001,6 +996,11 @@ cross-spawn@^7.0.0:
     path-key "^3.1.0"
     shebang-command "^2.0.0"
     which "^2.0.1"
+
+"crownstone-core@file:../crownstone-lib-nodejs-core":
+  version "0.3.0"
+  dependencies:
+    aes-js "^3.1.1"
 
 cssom@^0.4.1:
   version "0.4.4"

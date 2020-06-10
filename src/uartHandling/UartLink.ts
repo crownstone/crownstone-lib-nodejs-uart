@@ -3,7 +3,7 @@ import {UartReadBuffer} from "./UartReadBuffer";
 import {UartPacket} from "./uartPackets/UartWrapperPacket";
 import {UartParser} from "./UartParser";
 import {eventBus} from "../singletons/EventBus";
-import { ControlPacket, ControlType }  from "bluenet-nodejs-lib-core";
+import { ControlPacket, ControlType }  from "crownstone-core";
 import {UartTxType} from "../declarations/enums";
 import {UartWrapper} from "./uartPackets/UartWrapper";
 

@@ -1,6 +1,6 @@
 import {UartPacket} from "./uartPackets/UartWrapperPacket";
 import {eventBus} from "../singletons/EventBus";
-import {ServiceData} from "bluenet-nodejs-lib-core/dist/packets/ServiceData";
+import {ServiceData} from "crownstone-core/dist/packets/ServiceData";
 import {UartRxType} from "../declarations/enums";
 
 
@@ -29,18 +29,18 @@ export class UartParser {
 
       // serviceData = ServiceData(dataPacket.payload)
       // if (serviceData.validData) {
-      // BluenetEventBus.emit(DevTopics.newServiceData, serviceData.getDictionary())
+      // CrownstoneEventBus.emit(DevTopics.newServiceData, serviceData.getDictionary())
       // }
     }
     else if (opCode == UartRxType.CROWNSTONE_ID) {
       console.log("Got Crownstone Id")
       // id = Conversion.int8_to_uint8(dataPacket.payload)
-      // BluenetEventBus.emit(DevTopics.ownCrownstoneId, id)
+      // CrownstoneEventBus.emit(DevTopics.ownCrownstoneId, id)
     }
     else if (opCode == UartRxType.MAC_ADDRESS) {
       console.log("Got MAC address")
       // if (addr !== "") {
-      //     // BluenetEventBus.emit(DevTopics.ownMacAddress, addr)
+      //     // CrownstoneEventBus.emit(DevTopics.ownMacAddress, addr)
       // }
       // else {
       //     // console.log("invalid address) {", dataPacket.payload)
@@ -50,35 +50,35 @@ export class UartParser {
       console.log("Got MAC address")
       // type is CurrentSamples
       // parsedData = CurrentSamplesPacket(dataPacket.payload)
-      // BluenetEventBus.emit(DevTopics.newCurrentData, parsedData.getDict())
+      // CrownstoneEventBus.emit(DevTopics.newCurrentData, parsedData.getDict())
     }
     else if (opCode == UartRxType.POWER_LOG_VOLTAGE) {
       // type is VoltageSamplesPacket
       // parsedData = VoltageSamplesPacket(dataPacket.payload)
-      // BluenetEventBus.emit(DevTopics.newVoltageData, parsedData.getDict())
+      // CrownstoneEventBus.emit(DevTopics.newVoltageData, parsedData.getDict())
     }
     else if (opCode == UartRxType.POWER_LOG_FILTERED_CURRENT) {
       // type is CurrentSamples
       // parsedData = CurrentSamplesPacket(dataPacket.payload)
-      // BluenetEventBus.emit(DevTopics.newFilteredCurrentData, parsedData.getDict())
+      // CrownstoneEventBus.emit(DevTopics.newFilteredCurrentData, parsedData.getDict())
     }
     else if (opCode == UartRxType.POWER_LOG_FILTERED_VOLTAGE) {
       // type is VoltageSamplesPacket
       // parsedData = VoltageSamplesPacket(dataPacket.payload)
-      // BluenetEventBus.emit(DevTopics.newFilteredVoltageData, parsedData.getDict())
+      // CrownstoneEventBus.emit(DevTopics.newFilteredVoltageData, parsedData.getDict())
     }
     else if (opCode == UartRxType.POWER_LOG_POWER) {
       // type is PowerCalculationsPacket
       // parsedData = PowerCalculationPacket(dataPacket.payload)
-      // BluenetEventBus.emit(DevTopics.newCalculatedPowerData, parsedData.getDict())
+      // CrownstoneEventBus.emit(DevTopics.newCalculatedPowerData, parsedData.getDict())
     }
     else if (opCode == UartRxType.ADC_CONFIG) {
       // type is PowerCalculationsPacket
       // parsedData = AdcConfigPacket(dataPacket.payload)
-      // BluenetEventBus.emit(DevTopics.newAdcConfigPacket, parsedData.getDict())
+      // CrownstoneEventBus.emit(DevTopics.newAdcConfigPacket, parsedData.getDict())
     }
     else if (opCode == UartRxType.ADC_RESTART) {
-      // BluenetEventBus.emit(DevTopics.adcRestarted, null)
+      // CrownstoneEventBus.emit(DevTopics.adcRestarted, null)
     }
     else if (opCode == UartRxType.ASCII_LOG) {
       let stringResult = ""

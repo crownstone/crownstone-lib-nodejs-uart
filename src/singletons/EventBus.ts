@@ -1,3 +1,3 @@
-import { EventBusClass } from "bluenet-nodejs-lib-core";
+import { EventBusClass } from "crownstone-core";
 
 export const eventBus = new EventBusClass();
