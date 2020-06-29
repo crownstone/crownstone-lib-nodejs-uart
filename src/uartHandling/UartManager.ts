@@ -1,32 +1,14 @@
-import SerialPort from 'serialport'
-import {UartReadBuffer} from "./UartReadBuffer";
-import {UartPacket} from "./uartPackets/UartWrapperPacket";
-import {UartParser} from "./UartParser";
-import {eventBus} from "../singletons/EventBus";
 import {
   ControlPacket,
   ControlType,
   StoneMultiSwitchPacket,
   MeshMultiSwitchPacket,
-  Util,
   ControlPacketsGenerator
 } from "crownstone-core";
 
 import {UartTxType} from "../declarations/enums";
 import {UartWrapper} from "./uartPackets/UartWrapper";
 import {UartLinkManager} from "./UartLinkManager";
-
-function updatePorts() {
-  return new Promise((resolve, reject) => {
-    let availablePorts = {};
-    SerialPort.list().then((ports) => {
-      ports.forEach((port) => {
-        availablePorts[port.path] = {port:port, connected:false};
-      });
-      resolve(availablePorts);
-    });
-  })
-}
 
 
 export class UartManager {
@@ -37,11 +19,18 @@ export class UartManager {
     this.link = new UartLinkManager(autoReconnect);
   }
 
-  switchCrownstones(switchPairs : SwitchPair[]) : Promise<void> {
+  switchCrownstones(switchData : SwitchData[]) : Promise<void> {
     // create a stone switch state packet to go into the multi switch
     let packets : StoneMultiSwitchPacket[] = [];
-    switchPairs.forEach((pair) => {
-      packets.push(new StoneMultiSwitchPacket(pair.crownstoneId, pair.switchState));
+    switchData.forEach((data) => {
+      switch (data.type) {
+        case "TURN_ON":
+          return packets.push(new StoneMultiSwitchPacket(data.crownstoneId, 255));
+        case "TURN_OFF":
+          return packets.push(new StoneMultiSwitchPacket(data.crownstoneId, 0));
+        case "DIMMING":
+          return packets.push(new StoneMultiSwitchPacket(data.crownstoneId, data.value));
+      }
     });
 
     // wrap it in a mesh multi switch packet

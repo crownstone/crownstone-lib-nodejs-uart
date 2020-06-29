@@ -11,7 +11,8 @@
   "dependencies": {
     "aes-js": "^3.1.1",
     "crownstone-core": "file:../crownstone-lib-nodejs-core",
-    "serialport": "^8.0.7"
+    "debug-level": "^0.3.1",
+    "serialport": "9.0.0"
   },
   "devDependencies": {
     "@types/jest": "^25.1.1",

@@ -1,18 +1,7 @@
 import SerialPort from 'serialport'
-import {UartReadBuffer} from "./UartReadBuffer";
-import {UartPacket} from "./uartPackets/UartWrapperPacket";
-import {UartParser} from "./UartParser";
-import {eventBus} from "../singletons/EventBus";
 import {
-  ControlPacket,
-  ControlType,
-  StoneMultiSwitchPacket,
-  MeshMultiSwitchPacket,
   Util,
-  ControlPacketsGenerator
 } from "crownstone-core";
-import {UartTxType} from "../declarations/enums";
-import {UartWrapper} from "./uartPackets/UartWrapper";
 import {UartLink} from "./UartLink";
 
 function updatePorts() {
@@ -28,10 +17,13 @@ function updatePorts() {
 }
 
 
+const log = require('debug-level')('uart')
+
 export class UartLinkManager {
   autoReconnect = false;
 
   port : UartLink = null;
+  connected = false;
   triedPorts = [];
 
   constructor(autoReconnect = true) {
@@ -43,6 +35,7 @@ export class UartLinkManager {
   }
 
   restart() : Promise<void> {
+    this.connected = false;
     if (this.autoReconnect) {
       this.port = null;
       this.triedPorts = [];
@@ -58,12 +51,16 @@ export class UartLinkManager {
   initiateConnection() : Promise<void> {
     return updatePorts()
       .then((available) => {
+        // log.debug("Available ports on the system", available);
         let ports = available;
         let portPaths = Object.keys(ports);
-
         return Util.promiseBatchPerformer(portPaths, (port) => {
+          // we found a match. Do not try further
+          if (this.connected) { return Promise.resolve(); }
+
+          let manufacturer = ports[port].port?.manufacturer;
           // we use indexOf to check if a part of this string is in the manufacturer. It cah possibly differ between platforms.
-          if (ports[port].port?.manufacturer.indexOf("Silicon Lab") !== -1 || ports[port].port?.manufacturer.indexOf("SEGGER") !== -1) {
+          if (manufacturer && (manufacturer.indexOf("Silicon Lab") !== -1 || manufacturer.indexOf("SEGGER") !== -1)) {
             if (this.triedPorts.indexOf(port) === -1) {
               return this.tryConnectingToPort(port);
             }
@@ -74,10 +71,12 @@ export class UartLinkManager {
       .then(() => {
         // Handle the case where none of the connected devices match.
         if (this.port === null) {
+          log.info("Could not find a Crownstone USB connected.");
           throw "COULD_NOT_OPEN_CONNECTION_TO_UART";
         }
       })
       .catch((err) => {
+        log.debug("initiateConnection error", err)
         this.triedPorts = [];
         if (this.autoReconnect) {
           return new Promise((resolve, reject) => {
@@ -95,14 +94,19 @@ export class UartLinkManager {
 
   tryConnectingToPort(port)  : Promise<void> {
     return new Promise((resolve, reject) => {
+      this.connected = false;
+      log.debug("Trying port", port);
       this.triedPorts.push(port);
       let link = new UartLink(() => { this.restart(); });
       link.tryConnectingToPort(port)
         .then(() => {
+          log.info("Successful connection to ", port);
           this.port = link;
+          this.connected = true;
           resolve();
         })
         .catch((err) => {
+          log.debug("Failed connection", port, err);
           reject(err);
         })
     })

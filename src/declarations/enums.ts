@@ -28,9 +28,12 @@ export const UartTxType = {
 
 export const UartRxType = {
   ACK:                              0,
+  RESULT_PACKET:                    1,
   SERVICE_DATA:                     2,
   UART_MESSAGE:                     3,
   MESH_SERVICE_DATA:                102,
+  EXTERNAL_STATE_PART_0:    	      103,
+  EXTERNAL_STATE_PART_1:    	      104,
 
   ADVERTISING_ENABLED:              10000,
   MESH_ENABLED:                     10001,

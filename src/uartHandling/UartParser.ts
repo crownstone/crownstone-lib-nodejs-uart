@@ -2,13 +2,19 @@ import {UartPacket} from "./uartPackets/UartWrapperPacket";
 import {eventBus} from "../singletons/EventBus";
 import {ServiceData} from "crownstone-core/dist/packets/ServiceData";
 import {UartRxType} from "../declarations/enums";
+import {ResultPacket} from "crownstone-core";
 
+
+const MeshDataUniquenessChecker = {};
 
 export class UartParser {
 
   static parse(dataPacket : UartPacket) {
     let opCode = dataPacket.opCode;
     let parsedData = null;
+
+    // console.log("DATA", opCode)
+
     if (opCode == UartRxType.SERVICE_DATA) {
       // console.log("Got Own service data")
       let serviceData = new ServiceData(dataPacket.payload)
@@ -17,11 +23,18 @@ export class UartParser {
         eventBus.emit("SelfServiceData", serviceData.getJSON())
       }
     }
+    else if (opCode == UartRxType.RESULT_PACKET) {
+      let packet = new ResultPacket(dataPacket.payload)
+      eventBus.emit("resultPacket", packet)
+    }
     else if (opCode == UartRxType.MESH_SERVICE_DATA) {
       let serviceData = new ServiceData(dataPacket.payload, true);
-      serviceData.parse(true)
+      serviceData.parse()
       if (serviceData.validData) {
-        eventBus.emit("MeshServiceData", serviceData.getJSON())
+        if (MeshDataUniquenessChecker[serviceData.crownstoneId] !== serviceData.uniqueIdentifier) {
+          MeshDataUniquenessChecker[serviceData.crownstoneId] = serviceData.uniqueIdentifier;
+          eventBus.emit("MeshServiceData", serviceData.getJSON())
+        }
       }
       else {
         console.log(new Date().toLocaleString(), "Invalid mesh data from:", serviceData.crownstoneId)
@@ -80,6 +93,12 @@ export class UartParser {
     else if (opCode == UartRxType.ADC_RESTART) {
       // CrownstoneEventBus.emit(DevTopics.adcRestarted, null)
     }
+    else if (opCode == UartRxType.EXTERNAL_STATE_PART_0) {
+      // CrownstoneEventBus.emit(DevTopics.adcRestarted, null)
+    }
+    else if (opCode == UartRxType.EXTERNAL_STATE_PART_1) {
+      // CrownstoneEventBus.emit(DevTopics.adcRestarted, null)
+    }
     else if (opCode == UartRxType.ASCII_LOG) {
       let stringResult = ""
       for (let i = 0; i< dataPacket.payload.length; i++) {
@@ -91,7 +110,9 @@ export class UartParser {
       console.log("LOG:", new Date().valueOf(),":"+stringResult)
     }
     else if (opCode == UartRxType.UART_MESSAGE) {
-      eventBus.emit("UartMessage", {string: dataPacket.payload.toString(), data: dataPacket.payload})
+      if (dataPacket.payload.toString() !== 'ping') {
+        eventBus.emit("UartMessage", {string: dataPacket.payload.toString(), data: dataPacket.payload})
+      }
     }
     else {
       console.log("Unknown OpCode", opCode)

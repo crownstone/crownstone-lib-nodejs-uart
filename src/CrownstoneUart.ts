@@ -1,7 +1,7 @@
 import {UartManager} from "./uartHandling/UartManager";
 import {eventBus} from "./singletons/EventBus";
 
-
+const log = require('debug-level')('uart')
 
 export class CrownstoneUart {
   uart : UartManager
@@ -11,6 +11,7 @@ export class CrownstoneUart {
   }
 
   async start() : Promise<void> {
+    log.info("Starting Link.")
     return this.uart.link.start();
   }
 
@@ -26,12 +27,23 @@ export class CrownstoneUart {
     return eventBus.on(topic,callback)
   }
 
-  async switchCrownstone(crownstoneId: number, switchState: number) : Promise<void> {
-    return this.uart.switchCrownstones([{ crownstoneId, switchState }]);
+  async turnOnCrownstone(crownstoneId: number) : Promise<void> {
+    return this.uart.switchCrownstones([{ type:"TURN_ON", crownstoneId }]);
+  }
+  async turnOffCrownstone(crownstoneId: number) : Promise<void> {
+    return this.uart.switchCrownstones([{ type:"TURN_OFF", crownstoneId }]);
   }
 
-  async switchCrownstones(switchPairs : SwitchPair[]) : Promise<void> {
-    return this.uart.switchCrownstones(switchPairs);
+  /**
+   * @param crownstoneId
+   * @param switchState   0...100
+   */
+  async dimCrownstone(crownstoneId: number, switchState: number) : Promise<void> {
+    return this.uart.switchCrownstones([{ type:"DIMMING", crownstoneId, value: switchState }]);
+  }
+
+  async switchCrownstones(switchData : SwitchData[]) : Promise<void> {
+    return this.uart.switchCrownstones(switchData);
   }
 
   async registerTrackedDevice(
