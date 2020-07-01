@@ -29,7 +29,7 @@ export class UartManager {
         case "TURN_OFF":
           return packets.push(new StoneMultiSwitchPacket(data.crownstoneId, 0));
         case "DIMMING":
-          return packets.push(new StoneMultiSwitchPacket(data.crownstoneId, data.value));
+          return packets.push(new StoneMultiSwitchPacket(data.crownstoneId, data.switchState));
       }
     });
 

@@ -39,7 +39,7 @@ export class CrownstoneUart {
    * @param switchState   0...100
    */
   async dimCrownstone(crownstoneId: number, switchState: number) : Promise<void> {
-    return this.uart.switchCrownstones([{ type:"DIMMING", crownstoneId, value: switchState }]);
+    return this.uart.switchCrownstones([{ type:"DIMMING", crownstoneId, switchState: switchState }]);
   }
 
   async switchCrownstones(switchData : SwitchData[]) : Promise<void> {

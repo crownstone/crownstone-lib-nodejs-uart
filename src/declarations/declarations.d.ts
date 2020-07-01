@@ -8,11 +8,6 @@ interface keyMap {
   meshAppKey      : string,
 }
 
-interface SwitchPair {
-  crownstoneId: number,
-  switchState: number
-}
-
 type SwitchData = toggleData | dimmerData;
 
 interface toggleData {
@@ -23,7 +18,7 @@ interface toggleData {
 interface dimmerData {
   type: "DIMMING"
   crownstoneId: number,
-  value: number // 0 ... 100
+  switchState: number // 0 ... 100
 }
 
 
