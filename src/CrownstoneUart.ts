@@ -1,7 +1,7 @@
 import {UartManager} from "./uartHandling/UartManager";
 import {eventBus} from "./singletons/EventBus";
 
-const log = require('debug-level')('uart')
+const log = require('debug-level')('crownstone-uart')
 
 export class CrownstoneUart {
   uart : UartManager

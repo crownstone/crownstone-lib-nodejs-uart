@@ -8,7 +8,7 @@ import {UartTxType} from "../declarations/enums";
 import {UartWrapper} from "./uartPackets/UartWrapper";
 
 const HANDSHAKE = "HelloCrownstone";
-const log = require('debug-level')('uart-link')
+const log = require('debug-level')('crownstone-uart-link')
 
 export class UartLink {
   port    : SerialPort = null;

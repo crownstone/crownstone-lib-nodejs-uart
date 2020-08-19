@@ -17,7 +17,7 @@ function updatePorts() {
 }
 
 
-const log = require('debug-level')('uart')
+const log = require('debug-level')('crownstone-uart-manager')
 
 export class UartLinkManager {
   autoReconnect = false;
@@ -51,7 +51,7 @@ export class UartLinkManager {
   initiateConnection() : Promise<void> {
     return updatePorts()
       .then((available) => {
-        // log.debug("Available ports on the system", available);
+        log.debug("Available ports on the system", available);
         let ports = available;
         let portPaths = Object.keys(ports);
         return Util.promiseBatchPerformer(portPaths, (port) => {
