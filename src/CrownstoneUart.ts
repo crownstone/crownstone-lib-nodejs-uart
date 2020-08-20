@@ -10,9 +10,9 @@ export class CrownstoneUart {
     this.uart = new UartManager();
   }
 
-  async start() : Promise<void> {
+  async start(forcedPort = null) : Promise<void> {
     log.info("Starting Link.")
-    return this.uart.link.start();
+    return this.uart.link.start(forcedPort);
   }
 
   async close() : Promise<void> {
