@@ -26,11 +26,14 @@ export class UartLinkManager {
   connected = false;
   triedPorts = [];
 
+  forcedPort = null;
+
   constructor(autoReconnect = true) {
     this.autoReconnect = autoReconnect;
   }
 
-  start() : Promise<void> {
+  start(forcedPort = null) : Promise<void> {
+    this.forcedPort = forcedPort;
     return this.initiateConnection();
   }
 
@@ -49,47 +52,54 @@ export class UartLinkManager {
 
 
   initiateConnection() : Promise<void> {
-    return updatePorts()
-      .then((available) => {
-        log.debug("Available ports on the system", available);
-        let ports = available;
-        let portPaths = Object.keys(ports);
-        return Util.promiseBatchPerformer(portPaths, (port) => {
-          // we found a match. Do not try further
-          if (this.connected) { return Promise.resolve(); }
+    let promise;
+    if (this.forcedPort) {
+      promise = this.tryConnectingToPort(this.forcedPort);
+    }
+    else {
+      promise = updatePorts()
+        .then((available) => {
+          log.debug("Available ports on the system", available);
+          let ports = available;
+          let portPaths = Object.keys(ports);
+          return Util.promiseBatchPerformer(portPaths, (port) => {
+            // we found a match. Do not try further
+            if (this.connected) { return Promise.resolve(); }
 
-          let manufacturer = ports[port].port?.manufacturer;
-          // we use indexOf to check if a part of this string is in the manufacturer. It cah possibly differ between platforms.
-          if (manufacturer && (manufacturer.indexOf("Silicon Lab") !== -1 || manufacturer.indexOf("SEGGER") !== -1)) {
-            if (this.triedPorts.indexOf(port) === -1) {
-              return this.tryConnectingToPort(port);
+            let manufacturer = ports[port].port?.manufacturer;
+            // we use indexOf to check if a part of this string is in the manufacturer. It cah possibly differ between platforms.
+            if (manufacturer && (manufacturer.indexOf("Silicon Lab") !== -1 || manufacturer.indexOf("SEGGER") !== -1)) {
+              if (this.triedPorts.indexOf(port) === -1) {
+                return this.tryConnectingToPort(port);
+              }
             }
-          }
-          return Promise.resolve();
-        })
-      })
-      .then(() => {
-        // Handle the case where none of the connected devices match.
-        if (this.port === null) {
-          log.info("Could not find a Crownstone USB connected.");
-          throw "COULD_NOT_OPEN_CONNECTION_TO_UART";
-        }
-      })
-      .catch((err) => {
-        log.debug("initiateConnection error", err)
-        this.triedPorts = [];
-        if (this.autoReconnect) {
-          return new Promise((resolve, reject) => {
-            setTimeout(() => { resolve(); }, 500);
+            return Promise.resolve();
           })
-            .then(() => {
-              return this.initiateConnection();
-            })
-        }
-        else {
-          throw err;
-        }
-      })
+        })
+        .then(() => {
+          // Handle the case where none of the connected devices match.
+          if (this.port === null) {
+            log.info("Could not find a Crownstone USB connected.");
+            throw "COULD_NOT_OPEN_CONNECTION_TO_UART";
+          }
+        })
+    }
+
+    return promise.catch((err) => {
+      log.debug("initiateConnection error", err)
+      this.triedPorts = [];
+      if (this.autoReconnect) {
+        return new Promise((resolve, reject) => {
+          setTimeout(() => { resolve(); }, 500);
+        })
+          .then(() => {
+            return this.initiateConnection();
+          })
+      }
+      else {
+        throw err;
+      }
+    })
   }
 
   tryConnectingToPort(port)  : Promise<void> {
