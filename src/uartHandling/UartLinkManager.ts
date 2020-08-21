@@ -37,11 +37,12 @@ export class UartLinkManager {
     return this.initiateConnection();
   }
 
-  restart() : Promise<void> {
+  async restart() : Promise<void> {
     this.connected = false;
     if (this.autoReconnect) {
       this.port = null;
       this.triedPorts = [];
+      await Util.wait(100);
       return this.initiateConnection();
     }
   }
