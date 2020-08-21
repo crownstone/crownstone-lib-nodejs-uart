@@ -21,7 +21,7 @@ export class UartLink {
   rejecter;
   pingInterval;
 
-  unsubscribe;
+  unsubscribe = () => {};
   reconnectionCallback;
 
   constructor(reconnectionCallback) {
@@ -38,8 +38,10 @@ export class UartLink {
 
   cleanup() {
     this.unsubscribe();
-    this.port.removeAllListeners();
-    this.parser.removeAllListeners();
+
+    if (this.port) { this.port.removeAllListeners(); }
+    if (this.parser) { this.parser.removeAllListeners(); }
+
     clearInterval(this.pingInterval);
   }
 
