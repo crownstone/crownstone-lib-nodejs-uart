@@ -98,7 +98,7 @@ export class UartLink {
   handleError(err) {
     this.destroy()
       .then(() => {
-        log.debug("Connection error", err)
+        log.info("Connection error", err)
         this.reconnectionCallback();
         this.reconnectionCallback = () => {};
       })

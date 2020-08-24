@@ -60,7 +60,7 @@ export class UartLinkManager {
     else {
       promise = updatePorts()
         .then((available) => {
-          log.debug("Available ports on the system", available);
+          log.info("Available ports on the system", available);
           let ports = available;
           let portPaths = Object.keys(ports);
           return Util.promiseBatchPerformer(portPaths, (port) => {
@@ -87,7 +87,7 @@ export class UartLinkManager {
     }
 
     return promise.catch((err) => {
-      log.debug("initiateConnection error", err)
+      log.info("initiateConnection error", err)
       this.triedPorts = [];
       if (this.autoReconnect) {
         return new Promise((resolve, reject) => {
@@ -106,7 +106,7 @@ export class UartLinkManager {
   tryConnectingToPort(port)  : Promise<void> {
     return new Promise((resolve, reject) => {
       this.connected = false;
-      log.debug("Trying port", port);
+      log.info("Trying port", port);
       this.triedPorts.push(port);
       let link = new UartLink(() => { this.restart(); });
       link.tryConnectingToPort(port)
@@ -117,7 +117,7 @@ export class UartLinkManager {
           resolve();
         })
         .catch((err) => {
-          log.debug("Failed connection", port, err);
+          log.info("Failed connection", port, err);
           reject(err);
         })
     })

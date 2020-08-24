@@ -4,7 +4,7 @@ import {ServiceData} from "crownstone-core/dist/packets/ServiceData";
 import {UartRxType} from "../declarations/enums";
 import {ResultPacket} from "crownstone-core";
 
-
+const verboseLog = require('debug-level')('crownstone-verbose-uart-service-data');
 const MeshDataUniquenessChecker = {};
 
 export class UartParser {
@@ -17,15 +17,16 @@ export class UartParser {
 
     if (opCode == UartRxType.SERVICE_DATA) {
       // console.log("Got Own service data")
-      let serviceData = new ServiceData(dataPacket.payload)
-      serviceData.parse()
+      let serviceData = new ServiceData(dataPacket.payload);
+      serviceData.parse();
       if (serviceData.validData) {
-        eventBus.emit("SelfServiceData", serviceData.getJSON())
+        eventBus.emit("SelfServiceData", serviceData.getJSON());
       }
     }
     else if (opCode == UartRxType.RESULT_PACKET) {
-      let packet = new ResultPacket(dataPacket.payload)
-      eventBus.emit("resultPacket", packet)
+      let packet = new ResultPacket(dataPacket.payload);
+      verboseLog.debug("resultPacket", packet);
+      eventBus.emit("resultPacket", packet);
     }
     else if (opCode == UartRxType.MESH_SERVICE_DATA) {
       let serviceData = new ServiceData(dataPacket.payload, true);
@@ -33,6 +34,7 @@ export class UartParser {
       if (serviceData.validData) {
         if (MeshDataUniquenessChecker[serviceData.crownstoneId] !== serviceData.uniqueIdentifier) {
           MeshDataUniquenessChecker[serviceData.crownstoneId] = serviceData.uniqueIdentifier;
+          verboseLog.debug("MeshServiceData", serviceData.getJSON())
           eventBus.emit("MeshServiceData", serviceData.getJSON())
         }
       }
@@ -111,6 +113,7 @@ export class UartParser {
     }
     else if (opCode == UartRxType.UART_MESSAGE) {
       if (dataPacket.payload.toString() !== 'ping') {
+        verboseLog.verboseLog("UartMessage", dataPacket.payload.toString())
         eventBus.emit("UartMessage", {string: dataPacket.payload.toString(), data: dataPacket.payload})
       }
     }
