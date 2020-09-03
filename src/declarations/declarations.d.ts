@@ -12,13 +12,13 @@ type SwitchData = toggleData | dimmerData;
 
 interface toggleData {
   type: "TURN_ON" | "TURN_OFF"
-  crownstoneId: number,
+  stoneId: number,
 }
 
 interface dimmerData {
-  type: "DIMMING"
-  crownstoneId: number,
-  switchState: number // 0 ... 100
+  type: "PERCENTAGE"
+  stoneId: number,
+  percentage: number // 0 ... 100
 }
 
 

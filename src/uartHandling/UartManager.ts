@@ -25,11 +25,11 @@ export class UartManager {
     switchData.forEach((data) => {
       switch (data.type) {
         case "TURN_ON":
-          return packets.push(new StoneMultiSwitchPacket(data.crownstoneId, 255));
+          return packets.push(new StoneMultiSwitchPacket(data.stoneId, 255));
         case "TURN_OFF":
-          return packets.push(new StoneMultiSwitchPacket(data.crownstoneId, 0));
-        case "DIMMING":
-          return packets.push(new StoneMultiSwitchPacket(data.crownstoneId, data.switchState));
+          return packets.push(new StoneMultiSwitchPacket(data.stoneId, 0));
+        case "PERCENTAGE":
+          return packets.push(new StoneMultiSwitchPacket(data.stoneId, data.percentage));
       }
     });
 

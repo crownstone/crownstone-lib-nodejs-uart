@@ -27,19 +27,20 @@ export class CrownstoneUart {
     return eventBus.on(topic,callback)
   }
 
-  async turnOnCrownstone(crownstoneId: number) : Promise<void> {
-    return this.uart.switchCrownstones([{ type:"TURN_ON", crownstoneId }]);
+  async turnOnCrownstone(stoneId: number) : Promise<void> {
+    return this.uart.switchCrownstones([{ type:"TURN_ON", stoneId }]);
   }
-  async turnOffCrownstone(crownstoneId: number) : Promise<void> {
-    return this.uart.switchCrownstones([{ type:"TURN_OFF", crownstoneId }]);
+
+  async turnOffCrownstone(stoneId: number) : Promise<void> {
+    return this.uart.switchCrownstones([{ type:"TURN_OFF", stoneId }]);
   }
 
   /**
    * @param crownstoneId
    * @param switchState   0...100
    */
-  async dimCrownstone(crownstoneId: number, switchState: number) : Promise<void> {
-    return this.uart.switchCrownstones([{ type:"DIMMING", crownstoneId, switchState: switchState }]);
+  async dimCrownstone(stoneId: number, percentage: number) : Promise<void> {
+    return this.uart.switchCrownstones([{ type:"PERCENTAGE", stoneId, percentage: percentage }]);
   }
 
   async switchCrownstones(switchData : SwitchData[]) : Promise<void> {
