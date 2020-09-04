@@ -25,7 +25,7 @@ export class UartParser {
     }
     else if (opCode == UartRxType.RESULT_PACKET) {
       let packet = new ResultPacket(dataPacket.payload);
-      verboseLog.debug("resultPacket", packet);
+      verboseLog.info("resultPacket", packet);
       eventBus.emit("resultPacket", packet);
     }
     else if (opCode == UartRxType.MESH_SERVICE_DATA) {
@@ -113,7 +113,7 @@ export class UartParser {
     }
     else if (opCode == UartRxType.UART_MESSAGE) {
       if (dataPacket.payload.toString() !== 'ping') {
-        verboseLog.verboseLog("UartMessage", dataPacket.payload.toString())
+        verboseLog.info("UartMessage", dataPacket.payload.toString())
         eventBus.emit("UartMessage", {string: dataPacket.payload.toString(), data: dataPacket.payload})
       }
     }
