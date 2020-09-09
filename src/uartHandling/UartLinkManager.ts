@@ -3,17 +3,28 @@ import {
   Util,
 } from "crownstone-core";
 import {UartLink} from "./UartLink";
+import {getSnapSerialList} from "./snapDiscovery";
 
-function updatePorts() {
-  return new Promise((resolve, reject) => {
-    let availablePorts = {};
-    SerialPort.list().then((ports) => {
-      ports.forEach((port) => {
-        availablePorts[port.path] = {port:port, connected:false};
+
+let updatePorts = function() { return Promise.resolve({})}
+
+if (process.env.CS_UART_SEARCH_BY_ID) {
+  updatePorts = function() {
+    return getSnapSerialList()
+  }
+}
+else {
+  updatePorts = function() {
+    return new Promise((resolve, reject) => {
+      let availablePorts = {};
+      SerialPort.list().then((ports) => {
+        ports.forEach((port) => {
+          availablePorts[port.path] = {port: port, connected: false};
+        });
+        resolve(availablePorts);
       });
-      resolve(availablePorts);
-    });
-  })
+    })
+  }
 }
 
 

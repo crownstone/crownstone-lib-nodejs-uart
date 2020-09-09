@@ -113,8 +113,14 @@ export class UartParser {
     }
     else if (opCode == UartRxType.UART_MESSAGE) {
       if (dataPacket.payload.toString() !== 'ping') {
-        verboseLog.info("UartMessage", dataPacket.payload.toString())
-        eventBus.emit("UartMessage", {string: dataPacket.payload.toString(), data: dataPacket.payload})
+        let string =  dataPacket.payload.toString();
+        if (string === 'ping') {
+          verboseLog.verbose("UartMessage", string);
+        }
+        else {
+          verboseLog.info("UartMessage", string);
+        }
+        eventBus.emit("UartMessage", {string: string, data: dataPacket.payload})
       }
     }
     else {

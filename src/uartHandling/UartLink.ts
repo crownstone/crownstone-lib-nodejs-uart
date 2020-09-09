@@ -54,7 +54,7 @@ export class UartLink {
       this.parser = new SerialPort.parsers.ByteLength({length: 1});
       this.port.pipe(this.parser);
 
-      this.pingInterval = setInterval(() => { this.echo("ping")}, 500)
+      this.pingInterval = setInterval(() => { this.echo("ping")}, 2000)
 
       // bind all the events
       this.parser.on('data',(response) => { this.readBuffer.addByteArray(response); });
@@ -119,7 +119,3 @@ export class UartLink {
   }
 
 }
-
-//
-// 126, 1, 0, 20, 0, 5, 50, 0, 15, 0, 72, 101, 108, 108, 111, 67, 114, 111, 119, 110, 115, 116, 111, 110, 101, 33, 204
-// 126, 1, 0, 19, 0, 50, 0, 15, 0, 72, 101, 108, 108, 111, 67, 114, 111, 119, 110, 115, 116, 111, 110, 101, 123, 174,
