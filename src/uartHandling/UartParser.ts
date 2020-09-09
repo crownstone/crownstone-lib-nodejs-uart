@@ -2,7 +2,7 @@ import {UartPacket} from "./uartPackets/UartWrapperPacket";
 import {eventBus} from "../singletons/EventBus";
 import {ServiceData} from "crownstone-core/dist/packets/ServiceData";
 import {UartRxType} from "../declarations/enums";
-import {ResultPacket} from "crownstone-core";
+import {ControlType, ResultPacket} from "crownstone-core";
 
 const verboseLog = require('debug-level')('crownstone-verbose-uart-service-data');
 const MeshDataUniquenessChecker = {};
@@ -25,7 +25,12 @@ export class UartParser {
     }
     else if (opCode == UartRxType.RESULT_PACKET) {
       let packet = new ResultPacket(dataPacket.payload);
-      verboseLog.info("resultPacket", packet);
+      if (packet.commandType === ControlType.UART_MESSAGE) {
+        verboseLog.debug("resultPacket", packet);
+      }
+      else {
+        verboseLog.info("resultPacket", packet);
+      }
       eventBus.emit("resultPacket", packet);
     }
     else if (opCode == UartRxType.MESH_SERVICE_DATA) {
@@ -34,7 +39,7 @@ export class UartParser {
       if (serviceData.validData) {
         if (MeshDataUniquenessChecker[serviceData.crownstoneId] !== serviceData.uniqueIdentifier) {
           MeshDataUniquenessChecker[serviceData.crownstoneId] = serviceData.uniqueIdentifier;
-          verboseLog.debug("MeshServiceData", serviceData.getJSON())
+          verboseLog.info("MeshServiceData", serviceData.getJSON())
           eventBus.emit("MeshServiceData", serviceData.getJSON())
         }
       }
@@ -114,12 +119,7 @@ export class UartParser {
     else if (opCode == UartRxType.UART_MESSAGE) {
       if (dataPacket.payload.toString() !== 'ping') {
         let string =  dataPacket.payload.toString();
-        if (string === 'ping') {
-          verboseLog.verbose("UartMessage", string);
-        }
-        else {
-          verboseLog.info("UartMessage", string);
-        }
+        verboseLog.info("UartMessage", string);
         eventBus.emit("UartMessage", {string: string, data: dataPacket.payload})
       }
     }
