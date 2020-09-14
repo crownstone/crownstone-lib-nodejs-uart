@@ -4,11 +4,12 @@ import {
 } from "crownstone-core";
 import {UartLink} from "./UartLink";
 import {getSnapSerialList} from "./snapDiscovery";
+import {CONFIG} from "../config/config";
 
 
 let updatePorts = function() { return Promise.resolve({})}
 
-if (process.env.CS_UART_SEARCH_BY_ID) {
+if (CONFIG.useSearchById) {
   updatePorts = function() {
     return getSnapSerialList()
   }
@@ -78,11 +79,18 @@ export class UartLinkManager {
             // we found a match. Do not try further
             if (this.connected) { return Promise.resolve(); }
 
-            let manufacturer = ports[port].port?.manufacturer;
-            // we use indexOf to check if a part of this string is in the manufacturer. It cah possibly differ between platforms.
-            if (manufacturer && (manufacturer.indexOf("Silicon Lab") !== -1 || manufacturer.indexOf("SEGGER") !== -1)) {
+            if (CONFIG.useManufacturer === false || CONFIG.useSearchById) {
               if (this.triedPorts.indexOf(port) === -1) {
                 return this.tryConnectingToPort(port);
+              }
+            }
+            else {
+              let manufacturer = ports[port].port?.manufacturer;
+              // we use indexOf to check if a part of this string is in the manufacturer. It can possibly differ between platforms.
+              if (manufacturer && (manufacturer.indexOf("Silicon Lab") !== -1 || manufacturer.indexOf("SEGGER") !== -1)) {
+                if (this.triedPorts.indexOf(port) === -1) {
+                  return this.tryConnectingToPort(port);
+                }
               }
             }
             return Promise.resolve();
