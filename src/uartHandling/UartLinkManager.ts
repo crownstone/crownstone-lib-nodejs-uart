@@ -74,10 +74,12 @@ export class UartLinkManager {
         .then((available) => {
           log.info("Available ports on the system", available);
           let ports = available;
-          let portPaths = Object.keys(ports);
-          return Util.promiseBatchPerformer(portPaths, (port) => {
+          let portIds = Object.keys(ports);
+          return Util.promiseBatchPerformer(portIds, (portId) => {
             // we found a match. Do not try further
             if (this.connected) { return Promise.resolve(); }
+
+            let port = ports[portId].port?.path || portId;
 
             if (CONFIG.useManufacturer === false || CONFIG.useSearchById) {
               if (this.triedPorts.indexOf(port) === -1) {
@@ -85,7 +87,7 @@ export class UartLinkManager {
               }
             }
             else {
-              let manufacturer = ports[port].port?.manufacturer;
+              let manufacturer = ports[portId].port?.manufacturer;
               // we use indexOf to check if a part of this string is in the manufacturer. It can possibly differ between platforms.
               if (manufacturer && (manufacturer.indexOf("Silicon Lab") !== -1 || manufacturer.indexOf("SEGGER") !== -1)) {
                 if (this.triedPorts.indexOf(port) === -1) {
