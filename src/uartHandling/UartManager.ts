@@ -3,7 +3,7 @@ import {
   ControlType,
   StoneMultiSwitchPacket,
   MeshMultiSwitchPacket,
-  ControlPacketsGenerator
+  ControlPacketsGenerator, Util
 } from "crownstone-core";
 
 import {UartTxType} from "../declarations/enums";
@@ -71,6 +71,20 @@ export class UartManager {
     );
 
     let uartPacket = new UartWrapper(UartTxType.CONTROL, registrationPacket).getPacket();
+
+    this.link.write(uartPacket);
+
+    return new Promise((resolve, reject) => { setTimeout(() => { resolve() }, 100); });
+  }
+
+  setTime(customTimeInSeconds?: number) {
+    if (!customTimeInSeconds) {
+      customTimeInSeconds = Util.nowToCrownstoneTime();
+    }
+
+    let setTimePacket = ControlPacketsGenerator.getSetTimePacket(customTimeInSeconds);
+
+    let uartPacket = new UartWrapper(UartTxType.CONTROL, setTimePacket).getPacket();
 
     this.link.write(uartPacket);
 
