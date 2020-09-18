@@ -1010,10 +1010,10 @@ cross-spawn@^7.0.0:
     shebang-command "^2.0.0"
     which "^2.0.1"
 
-crownstone-core@^0.5.3:
-  version "0.5.3"
-  resolved "https://registry.yarnpkg.com/crownstone-core/-/crownstone-core-0.5.3.tgz#f7733188344d1e9975ec61c73c31e64a5d0fc235"
-  integrity sha512-QaN6h+OX5hMRBpfAvJcFKcS+IQWvbHJA/dKHTgZcaz91cNKy7ntJKd46sWf864QGZiUY02lb+EYNEBM+g2exIA==
+crownstone-core@^0.6.0:
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/crownstone-core/-/crownstone-core-0.6.0.tgz#c762eb60ae79979444527245ebca02f7188ffeb6"
+  integrity sha512-0920LmB8onDGHsgI8ratU81kxpKUtydFaBnNMp61x+j67qBUML+kUD6Wmt1S/1ornW0MEoTqIcPFUJwBvv8LkQ==
   dependencies:
     aes-js "^3.1.1"
 

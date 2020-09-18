@@ -142,9 +142,9 @@ export class UartLinkManager {
   }
 
 
-  write(data: Buffer) {
+  async write(data: Buffer) {
     // handle encryption here.
-    this.port.write(data);
+    return await this.port.write(data);
   }
 
 }

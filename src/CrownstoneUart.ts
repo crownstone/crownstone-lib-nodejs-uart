@@ -20,7 +20,7 @@ export class CrownstoneUart {
   }
 
   uartEcho(string : string) {
-    this.uart.link.echo(string)
+    this.uart.echo(string)
   }
 
   on(topic : string, callback : (data: any) => void) : () => void {

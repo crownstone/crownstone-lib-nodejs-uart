@@ -117,9 +117,17 @@ export class UartLink {
   //   this.write(uartPacket);
   // }
 
-  write(data : Buffer) {
-    this.port.write(data, (err) => {
-      if (err) { this.handleError(err); }
+  write(data : Buffer) : Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.port.write(data, (err) => {
+        if (err) {
+          this.handleError(err);
+          reject(err);
+        }
+        else {
+          resolve()
+        }
+      });
     });
   }
 
