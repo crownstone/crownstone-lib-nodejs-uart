@@ -72,4 +72,9 @@ export class CrownstoneUart {
   async delay(ms: number = 200) : Promise<void> {
     return new Promise((resolve, reject) => { setTimeout(() => { resolve() }, ms); });
   }
+
+  async setTime(customTimeInSeconds?: number) {
+    return await this.uart.setTime(customTimeInSeconds);
+  }
+
 }
