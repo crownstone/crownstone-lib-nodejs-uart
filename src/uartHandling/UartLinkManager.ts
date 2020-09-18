@@ -1,10 +1,9 @@
 import SerialPort from 'serialport'
-import {
-  Util,
-} from "crownstone-core";
 import {UartLink} from "./UartLink";
 import {getSnapSerialList} from "./snapDiscovery";
 import {CONFIG} from "../config/config";
+import {UartWrapperV2} from "./uartPackets/UartWrapperV2";
+import {Util} from "crownstone-core";
 
 
 let updatePorts = function() { return Promise.resolve({})}
@@ -142,10 +141,9 @@ export class UartLinkManager {
     })
   }
 
-  echo(data) {
-    this.port.echo(data);
-  }
-  write(data) {
+
+  write(data: Buffer) {
+    // handle encryption here.
     this.port.write(data);
   }
 

@@ -33,6 +33,7 @@ export class UartWrapper {
 		return Buffer.from(escapedPayload);
   }
 
+
 	getPacket() {
 		// get the length of the payload before escaping
 		let baseLength = this.payload.length

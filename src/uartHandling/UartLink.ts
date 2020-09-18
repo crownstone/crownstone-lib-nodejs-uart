@@ -3,11 +3,7 @@ import {UartReadBuffer} from "./UartReadBuffer";
 import {UartPacket} from "./uartPackets/UartWrapperPacket";
 import {UartParser} from "./UartParser";
 import {eventBus} from "../singletons/EventBus";
-import { ControlPacket, ControlType }  from "crownstone-core";
-import {UartTxType} from "../declarations/enums";
-import {UartWrapper} from "./uartPackets/UartWrapper";
 
-const HANDSHAKE = "HelloCrownstone";
 const log = require('debug-level')('crownstone-uart-link')
 
 export class UartLink {
@@ -54,7 +50,7 @@ export class UartLink {
       this.parser = new SerialPort.parsers.ByteLength({length: 1});
       this.port.pipe(this.parser);
 
-      this.pingInterval = setInterval(() => { this.echo("ping")}, 2000)
+      this.pingInterval = setInterval(() => { this.heartBeat()}, 2000)
 
       // bind all the events
       this.parser.on('data',(response) => { this.readBuffer.addByteArray(response); });
@@ -67,10 +63,11 @@ export class UartLink {
 
   handleNewConnection() {
     // we will try a handshake.
-    this.echo(HANDSHAKE);
+    this.sayHello();
 
     let closeTimeout = setTimeout(() => { if (!this.success) { this.closeConnection(); this.rejecter(); }}, 1000);
 
+    // TODO: handle handshake.
     this.unsubscribe = eventBus.on("UartMessage", (message) => {
       if (message?.string === HANDSHAKE) {
         clearTimeout(closeTimeout);
@@ -105,12 +102,20 @@ export class UartLink {
   }
 
 
-  echo(string) {
-    let controlPacket = new ControlPacket(ControlType.UART_MESSAGE).loadString(string).getPacket();
-    let uartPacket    = new UartWrapper(  UartTxType.CONTROL, controlPacket).getPacket();
+  heartBeat() {
 
-    this.write(uartPacket);
   }
+
+  sayHello() {
+
+  }
+
+  // echo(string) {
+  //   let controlPacket = new ControlPacket(ControlType.UART_MESSAGE).loadString(string).getPacket();
+  //   let uartPacket    = new UartWrapper(  UartTxType.CONTROL, controlPacket).getPacket();
+  //
+  //   this.write(uartPacket);
+  // }
 
   write(data : Buffer) {
     this.port.write(data, (err) => {

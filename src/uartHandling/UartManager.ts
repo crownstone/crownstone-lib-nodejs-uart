@@ -3,21 +3,45 @@ import {
   ControlType,
   StoneMultiSwitchPacket,
   MeshMultiSwitchPacket,
-  ControlPacketsGenerator, Util
+  ControlPacketsGenerator, Util, SessionData
 } from "crownstone-core";
 
 import {UartTxType} from "../declarations/enums";
 import {UartWrapper} from "./uartPackets/UartWrapper";
 import {UartLinkManager} from "./UartLinkManager";
+import {UartWrapperV2} from "./uartPackets/UartWrapperV2";
 
 
 export class UartManager {
 
   link : UartLinkManager;
+  encryptionKey : Buffer = null;
+  sessionData   : SessionData = null;
+  deviceId: number = 42;
+
 
   constructor(autoReconnect = true) {
     this.link = new UartLinkManager(autoReconnect);
+
+    this.sessionData = new SessionData();
+    this.sessionData.generate();
   }
+
+
+  setKey(key : string | Buffer) {
+    if (typeof key === 'string') {
+      this.encryptionKey = Util.prepareKey(key);
+    }
+    else {
+      this.encryptionKey = key;
+    }
+  }
+
+
+  refreshSessionData() {
+    this.sessionData.generate();
+  }
+
 
   switchCrownstones(switchData : SwitchData[]) : Promise<void> {
     // create a stone switch state packet to go into the multi switch
@@ -39,14 +63,14 @@ export class UartManager {
     // wrap that in a control packet
     let controlPacket = new ControlPacket(ControlType.MULTISWITCH).loadByteArray(meshMultiSwitchPacket).getPacket();
 
-
     // finally wrap it in an Uart packet
-    let uartPacket = new UartWrapper(UartTxType.CONTROL, controlPacket).getPacket();
+    let uartPacket = new UartWrapper(UartTxType.CONTROL, controlPacket)
 
-    this.link.write(uartPacket);
+    this.write(uartPacket)
 
     return new Promise((resolve, reject) => { setTimeout(() => { resolve() }, 100); });
   }
+
 
   registerTrackedDevice(
     trackingNumber:number,
@@ -70,12 +94,13 @@ export class UartManager {
       ttlMinutes
     );
 
-    let uartPacket = new UartWrapper(UartTxType.CONTROL, registrationPacket).getPacket();
+    let uartPacket = new UartWrapper(UartTxType.CONTROL, registrationPacket);
 
-    this.link.write(uartPacket);
+    this.write(uartPacket)
 
     return new Promise((resolve, reject) => { setTimeout(() => { resolve() }, 100); });
   }
+
 
   setTime(customTimeInSeconds?: number) {
     if (!customTimeInSeconds) {
@@ -84,11 +109,23 @@ export class UartManager {
 
     let setTimePacket = ControlPacketsGenerator.getSetTimePacket(customTimeInSeconds);
 
-    let uartPacket = new UartWrapper(UartTxType.CONTROL, setTimePacket).getPacket();
+    let uartPacket = new UartWrapper(UartTxType.CONTROL, setTimePacket)
 
-    this.link.write(uartPacket);
-
+    this.write(uartPacket)
     return new Promise((resolve, reject) => { setTimeout(() => { resolve() }, 100); });
+  }
+
+
+  write(uartMessage: UartWrapperV2) {
+    // TODO: INSERT DEVICE ID
+    uartMessage.setDeviceId(this.deviceId)
+    if (this.encryptionKey !== null) {
+      // ENCRYPT
+      this.link.write(uartMessage.getEncryptedPacket(this.sessionData, this.encryptionKey));
+    }
+    else {
+      this.link.write(uartMessage.getPacket());
+    }
   }
 
 }
