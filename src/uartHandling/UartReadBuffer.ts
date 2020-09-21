@@ -1,6 +1,8 @@
 import {UartUtil} from "../util/UartUtil";
-import {UartPacket} from "./uartPackets/UartWrapperPacket";
+import {UartWrapperPacket} from "./uartPackets/UartWrapperPacket";
 import {eventBus} from "../singletons/EventBus";
+import {UartWrapperPacketV2} from "./uartPackets/UartWrapperPacketV2";
+import {UartEncryptionContainer} from "./UartEncryptionContainer";
 
 const ESCAPE_TOKEN  = 0x5c;
 const BIT_FLIP_MASK = 0x40;
@@ -20,13 +22,17 @@ export class UartReadBuffer {
   opCode = 0;
   reportedSize = 0;
 
+  encryptionContainer : UartEncryptionContainer;
+
   callback = null;
 
-  constructor(callback) {
+  constructor(callback, encryptionContainer) {
     this.buffer = [];
     this.escapingNextToken = false;
     this.active = false;
     this.opCode = 0;
+
+    this.encryptionContainer = encryptionContainer;
 
     this.callback = callback;
 
@@ -109,7 +115,11 @@ export class UartReadBuffer {
       return
     }
 
-    let packet = new UartPacket(Buffer.from(this.buffer));
+    let packet = new UartWrapperPacketV2(
+      Buffer.from(this.buffer),
+      this.encryptionContainer.incomingSessionData,
+      this.encryptionContainer.encryptionKey
+    );
     this.callback(packet);
     this.reset()
   }

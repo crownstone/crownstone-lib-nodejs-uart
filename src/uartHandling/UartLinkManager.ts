@@ -4,6 +4,7 @@ import {getSnapSerialList} from "./snapDiscovery";
 import {CONFIG} from "../config/config";
 import {UartWrapperV2} from "./uartPackets/UartWrapperV2";
 import {Util} from "crownstone-core";
+import {UartEncryptionContainer} from "./UartEncryptionContainer";
 
 
 let updatePorts = function() { return Promise.resolve({})}
@@ -33,13 +34,15 @@ const log = require('debug-level')('crownstone-uart-manager')
 export class UartLinkManager {
   autoReconnect = false;
 
+  encryptionContainer: UartEncryptionContainer;
   port : UartLink = null;
   connected = false;
   triedPorts = [];
 
   forcedPort = null;
 
-  constructor(autoReconnect = true) {
+  constructor(autoReconnect, encryptionContainer: UartEncryptionContainer) {
+    this.encryptionContainer = encryptionContainer;
     this.autoReconnect = autoReconnect;
   }
 
@@ -126,7 +129,7 @@ export class UartLinkManager {
       this.connected = false;
       log.info("Trying port", port);
       this.triedPorts.push(port);
-      let link = new UartLink(() => { this.restart(); });
+      let link = new UartLink(() => { this.restart(); }, this.encryptionContainer);
       link.tryConnectingToPort(port)
         .then(() => {
           log.info("Successful connection to ", port);

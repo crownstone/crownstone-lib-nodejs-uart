@@ -7,39 +7,29 @@ import {
 } from "crownstone-core";
 
 import {UartTxType} from "../declarations/enums";
-import {UartWrapper} from "./uartPackets/UartWrapper";
 import {UartLinkManager} from "./UartLinkManager";
 import {UartWrapperV2} from "./uartPackets/UartWrapperV2";
+import {UartEncryptionContainer} from "./UartEncryptionContainer";
 
 
 export class UartManager {
 
   link : UartLinkManager;
-  encryptionKey : Buffer = null;
-  sessionData   : SessionData = null;
+  encryptionContainer: UartEncryptionContainer;
   deviceId: number = 42;
 
 
   constructor(autoReconnect = true) {
-    this.link = new UartLinkManager(autoReconnect);
-
-    this.sessionData = new SessionData();
-    this.sessionData.generate();
+    this.link = new UartLinkManager(autoReconnect, this.encryptionContainer);
   }
 
 
   setKey(key : string | Buffer) {
-    if (typeof key === 'string') {
-      this.encryptionKey = Util.prepareKey(key);
-    }
-    else {
-      this.encryptionKey = key;
-    }
+    this.encryptionContainer.setKey(key);
   }
 
-
   refreshSessionData() {
-    this.sessionData.generate();
+    this.encryptionContainer.refreshSessionData();
   }
 
 
@@ -121,11 +111,14 @@ export class UartManager {
 
 
   async write(uartMessage: UartWrapperV2) {
-    // TODO: INSERT DEVICE ID
     uartMessage.setDeviceId(this.deviceId)
-    if (this.encryptionKey !== null) {
+    if (this.encryptionContainer.encryptionKey !== null) {
       // ENCRYPT
-      return this.link.write(uartMessage.getEncryptedPacket(this.sessionData, this.encryptionKey)).catch();
+      let packet = uartMessage.getEncryptedPacket(
+        this.encryptionContainer.outgoingSessionData,
+        this.encryptionContainer.encryptionKey
+      );
+      return this.link.write(packet).catch();
     }
     else {
       return this.link.write(uartMessage.getPacket()).catch();

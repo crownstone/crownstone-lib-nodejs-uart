@@ -4,7 +4,14 @@ const fs = require('fs')
 
 export const getSnapSerialList = function() {
   return new Promise((resolve, reject) => {
-    let serialDevices = fs.readdirSync(CONFIG.uartSearchPath);
+    let serialDevices = [];
+    try {
+      serialDevices = fs.readdirSync(CONFIG.uartSearchPath);
+    }
+    catch (e) {
+      console.log("ERR: presumably missing dongle!", e);
+      return reject(e);
+    }
     let availablePorts = {};
     let regexp = RegExp(CONFIG.uartPortSearchPattern);
 

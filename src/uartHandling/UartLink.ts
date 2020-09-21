@@ -1,8 +1,9 @@
 import SerialPort from 'serialport'
 import {UartReadBuffer} from "./UartReadBuffer";
-import {UartPacket} from "./uartPackets/UartWrapperPacket";
+import {UartWrapperPacket} from "./uartPackets/UartWrapperPacket";
 import {UartParser} from "./UartParser";
 import {eventBus} from "../singletons/EventBus";
+import {UartEncryptionContainer} from "./UartEncryptionContainer";
 
 const log = require('debug-level')('crownstone-uart-link')
 
@@ -17,12 +18,23 @@ export class UartLink {
   rejecter;
   pingInterval;
 
-  unsubscribe = () => {};
+  unsubscribeEvents : (() => void)[] = [];
+  unsubscribeHello = () => {};
   reconnectionCallback;
 
-  constructor(reconnectionCallback) {
+  constructor(reconnectionCallback, encryptionContainer : UartEncryptionContainer) {
     this.reconnectionCallback = reconnectionCallback;
-    this.readBuffer = new UartReadBuffer((data : UartPacket) => { UartParser.parse(data) });
+
+    // the read buffer will parse the message's outer container (start, end, crc);
+    let parseCallback = (data : UartWrapperPacket) => { UartParser.parse(data) };
+    this.readBuffer = new UartReadBuffer(parseCallback, encryptionContainer);
+
+    // load new, updated session nonce data into the container.
+    this.unsubscribeEvents.push(
+      eventBus.on(
+        "SessionNonceReceived",
+        (data: Buffer) => { encryptionContainer.setIncomingSessionData(data); }
+    ));
   }
 
   destroy() : Promise<void> {
@@ -33,7 +45,8 @@ export class UartLink {
   }
 
   cleanup() {
-    this.unsubscribe();
+    this.unsubscribeHello();
+    this.unsubscribeEvents.forEach((unsub) => { unsub(); });
 
     if (this.port) { this.port.removeAllListeners(); }
     if (this.parser) { this.parser.removeAllListeners(); }
@@ -67,18 +80,12 @@ export class UartLink {
 
     let closeTimeout = setTimeout(() => { if (!this.success) { this.closeConnection(); this.rejecter(); }}, 1000);
 
-    // TODO: handle handshake.
-    this.unsubscribe = eventBus.on("UartMessage", (message) => {
-      if (message?.string === HANDSHAKE) {
-        clearTimeout(closeTimeout);
-        this.success = true;
-        this.unsubscribe();
-        this.resolver();
-      }
-      else {
-        // handle failure
-      }
-    })
+    this.unsubscribeHello = eventBus.on("HelloReceived", (message) => {
+      clearTimeout(closeTimeout);
+      this.success = true;
+      this.unsubscribeHello();
+      this.resolver();
+    });
   }
 
 

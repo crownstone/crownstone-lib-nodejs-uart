@@ -1,21 +1,52 @@
-import {UartPacket} from "./uartPackets/UartWrapperPacket";
+import {UartWrapperPacket} from "./uartPackets/UartWrapperPacket";
 import {eventBus} from "../singletons/EventBus";
 import {ServiceData} from "crownstone-core/dist/packets/ServiceData";
 import {UartRxType} from "../declarations/enums";
 import {ControlType, ResultPacket} from "crownstone-core";
+import {HelloPacket} from "./contentPackets/Hello";
 
 const verboseLog = require('debug-level')('crownstone-verbose-uart-service-data');
 const MeshDataUniquenessChecker = {};
 
 export class UartParser {
 
-  static parse(dataPacket : UartPacket) {
+  static parse(dataPacket : UartWrapperPacket) {
     let opCode = dataPacket.opCode;
     let parsedData = null;
 
     // console.log("DATA", opCode)
 
-    if (opCode == UartRxType.SERVICE_DATA) {
+    if (opCode === UartRxType.HELLO) {
+      let hello = new HelloPacket(dataPacket.payload);
+      if (hello.valid) {
+        eventBus.emit("HelloReceived", {sphereId: hello.sphereUID, status: hello.status});
+      }
+      else {
+        console.log("invalid hello packet", dataPacket.payload)
+      }
+    }
+    else if (opCode === UartRxType.HEARTBEAT) {
+      if (dataPacket.payload.length === 2) {
+        eventBus.emit("HeartBeat", {timeout: dataPacket.payload.readUInt16LE(0)});
+      }else {
+        console.log("invalid HEARTBEAT packet", dataPacket.payload)
+      }
+    }
+    else if (opCode === UartRxType.STATUS) {
+      if (dataPacket.payload.length === 1) {
+        eventBus.emit("HeartBeat", {timeout: dataPacket.payload.readUInt8(0)});
+      }else {
+        console.log("invalid STATUS packet", dataPacket.payload)
+      }
+    }
+    else if (opCode === UartRxType.SESSION_NONCE) {
+      if (dataPacket.payload.length === 5) {
+        eventBus.emit("SessionNonceReceived", {timeout: dataPacket.payload});
+      }else {
+        console.log("invalid session nonce packet", dataPacket.payload)
+      }
+    }
+    else if (opCode == UartRxType.OWN_SERVICE_DATA) {
       // console.log("Got Own service data")
       let serviceData = new ServiceData(dataPacket.payload);
       serviceData.parse();
@@ -46,11 +77,6 @@ export class UartParser {
       else {
         console.log(new Date().toLocaleString(), "Invalid mesh data from:", serviceData.crownstoneId)
       }
-
-      // serviceData = ServiceData(dataPacket.payload)
-      // if (serviceData.validData) {
-      // CrownstoneEventBus.emit(DevTopics.newServiceData, serviceData.getDictionary())
-      // }
     }
     else if (opCode == UartRxType.CROWNSTONE_ID) {
       console.log("Got Crownstone Id")
