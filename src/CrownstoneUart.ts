@@ -1,7 +1,7 @@
 import {UartManager} from "./uartHandling/UartManager";
 import {eventBus} from "./singletons/EventBus";
-
-const log = require('debug-level')('crownstone-uart')
+import {Logger} from './Logger'
+const LOG = Logger("CrownstoneUart");
 
 export class CrownstoneUart {
   uart : UartManager
@@ -11,7 +11,7 @@ export class CrownstoneUart {
   }
 
   async start(forcedPort = null) : Promise<void> {
-    log.info("Starting Link.")
+    LOG.info("Starting Link.")
     return this.uart.link.start(forcedPort);
   }
 

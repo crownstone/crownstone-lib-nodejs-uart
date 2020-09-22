@@ -4,7 +4,8 @@
  */
 import {DataStepper} from "crownstone-core/dist/util/DataStepper";
 import {EncryptionHandler, SessionData} from "crownstone-core";
-const LOG = require('debug-level')('crownstone-verbose-uart-parsing');
+import {Logger} from "../../Logger";
+const log = Logger(__filename);
 
 export class UartWrapperPacketV2 {
   protocolMajor : number;
@@ -69,7 +70,7 @@ export class UartWrapperPacketV2 {
       }
     }
     catch (err) {
-      LOG.warn("Something went wrong during parsing UartWrapperPacketV2", err);
+      log.warn("Something went wrong during parsing UartWrapperPacketV2", err);
       this.valid = false;
     }
   }

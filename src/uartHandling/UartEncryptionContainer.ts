@@ -8,7 +8,7 @@ export class UartEncryptionContainer {
   incomingSessionData : SessionData = null;
 
 
-  constructor(autoReconnect = true) {
+  constructor() {
     // create initial guesses for the session data;
     this.incomingSessionData = new SessionData();
     this.incomingSessionData.generate();

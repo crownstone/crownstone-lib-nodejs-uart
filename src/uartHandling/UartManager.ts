@@ -20,6 +20,7 @@ export class UartManager {
 
 
   constructor(autoReconnect = true) {
+    this.encryptionContainer = new UartEncryptionContainer()
     this.link = new UartLinkManager(autoReconnect, this.encryptionContainer);
   }
 

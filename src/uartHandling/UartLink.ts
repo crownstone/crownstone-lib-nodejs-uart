@@ -5,7 +5,8 @@ import {UartParser} from "./UartParser";
 import {eventBus} from "../singletons/EventBus";
 import {UartEncryptionContainer} from "./UartEncryptionContainer";
 
-const log = require('debug-level')('crownstone-uart-link')
+import {Logger} from "../Logger";
+const log = Logger(__filename);
 
 export class UartLink {
   port    : SerialPort = null;

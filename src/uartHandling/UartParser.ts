@@ -4,8 +4,9 @@ import {ServiceData} from "crownstone-core/dist/packets/ServiceData";
 import {UartRxType} from "../declarations/enums";
 import {ControlType, ResultPacket} from "crownstone-core";
 import {HelloPacket} from "./contentPackets/Hello";
+import {Logger} from "../Logger";
+const log = Logger(__filename, true)
 
-const verboseLog = require('debug-level')('crownstone-verbose-uart-service-data');
 const MeshDataUniquenessChecker = {};
 
 export class UartParser {
@@ -14,7 +15,11 @@ export class UartParser {
     let opCode = dataPacket.opCode;
     let parsedData = null;
 
-    // console.log("DATA", opCode)
+    if (dataPacket.valid === false) {
+      console.log("Invalid packet, maybe wrong protocol?");
+      return;
+    }
+
 
     if (opCode === UartRxType.HELLO) {
       let hello = new HelloPacket(dataPacket.payload);
@@ -57,10 +62,10 @@ export class UartParser {
     else if (opCode == UartRxType.RESULT_PACKET) {
       let packet = new ResultPacket(dataPacket.payload);
       if (packet.commandType === ControlType.UART_MESSAGE) {
-        verboseLog.debug("resultPacket", packet);
+        log.verbose("resultPacket", packet);
       }
       else {
-        verboseLog.info("resultPacket", packet);
+        log.debug("resultPacket", packet);
       }
       eventBus.emit("resultPacket", packet);
     }
@@ -70,7 +75,7 @@ export class UartParser {
       if (serviceData.validData) {
         if (MeshDataUniquenessChecker[serviceData.crownstoneId] !== serviceData.uniqueIdentifier) {
           MeshDataUniquenessChecker[serviceData.crownstoneId] = serviceData.uniqueIdentifier;
-          verboseLog.info("MeshServiceData", serviceData.getJSON())
+          log.debug("MeshServiceData", serviceData.getJSON())
           eventBus.emit("MeshServiceData", serviceData.getJSON())
         }
       }
@@ -145,12 +150,12 @@ export class UartParser {
     else if (opCode == UartRxType.UART_MESSAGE) {
       if (dataPacket.payload.toString() !== 'ping') {
         let string =  dataPacket.payload.toString();
-        verboseLog.info("UartMessage", string);
+        log.verbose("UartMessage", string);
         eventBus.emit("UartMessage", {string: string, data: dataPacket.payload})
       }
     }
     else {
-      console.log("Unknown OpCode", opCode)
+      console.log("Unknown OpCode", opCode, dataPacket)
     }
 
     parsedData = null;

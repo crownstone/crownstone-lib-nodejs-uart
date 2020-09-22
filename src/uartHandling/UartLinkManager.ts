@@ -28,8 +28,8 @@ else {
   }
 }
 
-
-const log = require('debug-level')('crownstone-uart-manager')
+import {Logger} from "../Logger";
+const log = Logger(__filename);
 
 export class UartLinkManager {
   autoReconnect = false;
