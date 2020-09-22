@@ -4,8 +4,9 @@ import {ServiceData} from "crownstone-core/dist/packets/ServiceData";
 import {UartRxType} from "../declarations/enums";
 import {ControlType, ResultPacket} from "crownstone-core";
 import {HelloPacket} from "./contentPackets/Hello";
+
 import {Logger} from "../Logger";
-const log = Logger(__filename, true)
+const log = Logger(__filename, true);
 
 const MeshDataUniquenessChecker = {};
 
@@ -16,10 +17,10 @@ export class UartParser {
     let parsedData = null;
 
     if (dataPacket.valid === false) {
-      console.log("Invalid packet, maybe wrong protocol?");
+      log.warn("Invalid packet, maybe wrong protocol?");
       return;
     }
-
+    log.debug("Handling packet:", dataPacket);
 
     if (opCode === UartRxType.HELLO) {
       let hello = new HelloPacket(dataPacket.payload);

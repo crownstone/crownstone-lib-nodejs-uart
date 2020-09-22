@@ -1,25 +1,22 @@
 import {UartUtil} from "../util/UartUtil";
-import {UartWrapperPacket} from "./uartPackets/UartWrapperPacket";
 import {eventBus} from "../singletons/EventBus";
 import {UartWrapperPacketV2} from "./uartPackets/UartWrapperPacketV2";
 import {UartEncryptionContainer} from "./UartEncryptionContainer";
+import {Logger} from "../Logger";
+
+const log = Logger(__filename, true);
 
 const ESCAPE_TOKEN  = 0x5c;
 const BIT_FLIP_MASK = 0x40;
 const START_TOKEN   = 0x7e;
 
-const OPCODE_SIZE = 2;
-const LENGTH_SIZE = 2;
-const CRC_SIZE    = 2;
-
-const PREFIX_SIZE  = OPCODE_SIZE + LENGTH_SIZE;
-const WRAPPER_SIZE = PREFIX_SIZE + CRC_SIZE;
+const LENGTH_SIZE  = 2;
+const CRC_SIZE     = 2;
 
 export class UartReadBuffer {
   buffer : number[];
   escapingNextToken = false;
   active = false;
-  opCode = 0;
   reportedSize = 0;
 
   encryptionContainer : UartEncryptionContainer;
@@ -30,8 +27,6 @@ export class UartReadBuffer {
     this.buffer = [];
     this.escapingNextToken = false;
     this.active = false;
-    this.opCode = 0;
-
     this.encryptionContainer = encryptionContainer;
 
     this.callback = callback;
@@ -46,10 +41,11 @@ export class UartReadBuffer {
   }
 
   add(byte) {
+    log.silly("Received byte", byte);
     // if (we have a start token and we are not active
     if (byte === START_TOKEN) {
       if (this.active) {
-        console.log("WARN: MULTIPLE START TOKENS");
+        log.warn("MULTIPLE START TOKENS");
         eventBus.emit("UartNoise", "multiple start token")
         // console.log("buf:", this.buffer)
         this.reset();
@@ -63,12 +59,12 @@ export class UartReadBuffer {
 
 
     if (!this.active) {
-      console.log("not active!", byte);
+      log.verbose("not active!", byte);
       return
     }
     if (byte === ESCAPE_TOKEN) {
       if (this.escapingNextToken) {
-        console.log("WARN: DOUBLE ESCAPE");
+        log.warn("DOUBLE ESCAPE");
         eventBus.emit("UartNoise", "double escape token")
         this.reset();
         return
@@ -83,19 +79,20 @@ export class UartReadBuffer {
       this.escapingNextToken = false
     }
     this.buffer.push(byte);
+    log.verbose("adding byte to buffer:", byte, this.buffer)
     let bufferSize = this.buffer.length;
 
-    if (bufferSize == PREFIX_SIZE) {
-      let sizeBuffer = Buffer.from(this.buffer.slice(OPCODE_SIZE, PREFIX_SIZE));
-      this.reportedSize = sizeBuffer.readUInt16LE(0)
+    if (bufferSize == LENGTH_SIZE) {
+      let sizeBuffer = Buffer.from(this.buffer);
+      this.reportedSize = sizeBuffer.readUInt16LE(0); // Size of all data after this field, including CRC.
     }
-    if (bufferSize > PREFIX_SIZE) {
-      if (bufferSize == (this.reportedSize + WRAPPER_SIZE)) {
+    if (bufferSize > LENGTH_SIZE) {
+      if (bufferSize == (this.reportedSize + LENGTH_SIZE)) {
         this.process();
         return
       }
-      else if (bufferSize > this.reportedSize + WRAPPER_SIZE) {
-        console.log("WARN: OVERFLOW");
+      else if (bufferSize > (this.reportedSize + LENGTH_SIZE)) {
+        log.warn("OVERFLOW");
         this.reset()
       }
     }
@@ -103,13 +100,14 @@ export class UartReadBuffer {
 
 
   process() {
+    log.verbose("Processing buffer", this.buffer);
     let payload = this.buffer.slice(0, this.buffer.length - CRC_SIZE);
     let calculatedCrc = UartUtil.crc16_ccitt(payload);
     let crcBuffer = Buffer.from(this.buffer.slice(this.buffer.length - CRC_SIZE, this.buffer.length));
     let sourceCrc = crcBuffer.readUInt16LE(0);
 
     if (calculatedCrc != sourceCrc) {
-      console.log("WARN: Failed CRC");
+      log.warn("Failed CRC");
       eventBus.emit("UartNoise", "crc mismatch");
       this.reset();
       return
@@ -128,7 +126,6 @@ export class UartReadBuffer {
     this.buffer = [];
     this.escapingNextToken = false;
     this.active = false;
-    this.opCode = 0;
-    this.reportedSize = 0
+    this.reportedSize = 0;
   }
 }

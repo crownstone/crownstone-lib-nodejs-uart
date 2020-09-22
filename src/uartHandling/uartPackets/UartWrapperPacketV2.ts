@@ -27,7 +27,7 @@ export class UartWrapperPacketV2 {
 
   constructor(data : Buffer, sessionData: SessionData = null, key: Buffer = null) {
     this.sessionData = sessionData;
-    this.key = key;
+    this.key         = key;
     this.load(data);
   }
 
@@ -36,10 +36,10 @@ export class UartWrapperPacketV2 {
 
     let stepper = new DataStepper(data);
     try {
+      this.messageSize   = stepper.getUInt16();
       this.protocolMajor = stepper.getUInt8();
       this.protocolMinor = stepper.getUInt8();
       this.messageType   = stepper.getUInt8();
-      this.messageSize   = stepper.getUInt16();
 
       // the MSB bit of the message type means it this message is encrypted
       this.encrypted = (this.messageType & 128) === 128;
@@ -66,7 +66,7 @@ export class UartWrapperPacketV2 {
         let uartMessageStepper = new DataStepper(uartMessage);
         this.deviceId = uartMessageStepper.getUInt8();
         this.dataType = uartMessageStepper.getUInt16();
-        this.payload = uartMessageStepper.getRemainingBuffer();
+        this.payload  = uartMessageStepper.getRemainingBuffer();
       }
     }
     catch (err) {

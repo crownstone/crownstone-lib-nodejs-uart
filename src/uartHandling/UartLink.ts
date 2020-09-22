@@ -76,10 +76,15 @@ export class UartLink {
 
 
   handleNewConnection() {
+    log.info("Setting up new connection...")
     // we will try a handshake.
     this.sayHello();
 
-    let closeTimeout = setTimeout(() => { if (!this.success) { this.closeConnection(); this.rejecter(); }}, 1000);
+    let closeTimeout = setTimeout(() => { if (!this.success) {
+      log.info("Failed setting up connection, timeout");
+      this.closeConnection();
+      this.rejecter();
+    }}, 1000);
 
     this.unsubscribeHello = eventBus.on("HelloReceived", (message) => {
       clearTimeout(closeTimeout);
