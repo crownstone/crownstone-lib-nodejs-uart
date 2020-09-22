@@ -3,7 +3,7 @@ import { Util, SessionData } from "crownstone-core";
 
 export class UartEncryptionContainer {
 
-  encryptionKey : Buffer = null;
+  key : Buffer = null;
   outgoingSessionData : SessionData = null;
   incomingSessionData : SessionData = null;
 
@@ -19,10 +19,10 @@ export class UartEncryptionContainer {
 
   setKey(key : string | Buffer) {
     if (typeof key === 'string') {
-      this.encryptionKey = Util.prepareKey(key);
+      this.key = Util.prepareKey(key);
     }
     else {
-      this.encryptionKey = key;
+      this.key = key;
     }
   }
 

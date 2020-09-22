@@ -12,7 +12,11 @@ const UART_TYPES = {
 const PROTOCOL_MAJOR = 1;
 const PROTOCOL_MINOR = 0;
 
-const PREFIX_SIZE = 5;
+const LENGTH_SIZE = 2;
+
+const WRAPPER_PREFIX_SIZE = 3;
+const ENCRYPTION_PREFIX_SIZE = 5;
+
 const DEVICE_ID_SIZE = 1;
 const DATA_TYPE_SIZE = 2;
 
@@ -23,7 +27,7 @@ export class UartWrapperV2 {
 
 
 	dataType: number
-	deviceId: number
+	deviceId: number = 0;
 	payload: Buffer
 
 	constructor(dataType : number, payload : Buffer = Buffer.from([])) {
@@ -37,7 +41,7 @@ export class UartWrapperV2 {
 
 
   getEncryptedPacket(sessionData: SessionData, key: Buffer) : Buffer {
-		let writer = new DataWriter(PREFIX_SIZE);
+		let writer = new DataWriter(ENCRYPTION_PREFIX_SIZE);
 		this._addPrefixes(writer, UART_TYPES.UART_MESSAGE | 128);
 		let uartMessage = this._getUartPacket()
 
@@ -68,7 +72,7 @@ export class UartWrapperV2 {
 
 	getPacket() : Buffer {
 		// construct the basePacket, which is used for CRC calculation
-		let writer = new DataWriter(PREFIX_SIZE);
+		let writer = new DataWriter(WRAPPER_PREFIX_SIZE);
 		this._addPrefixes(writer, UART_TYPES.UART_MESSAGE);
 
 		writer.putBuffer(this._getUartPacket())
@@ -81,7 +85,6 @@ export class UartWrapperV2 {
 		writer.putUInt8(PROTOCOL_MAJOR)
 		writer.putUInt8(PROTOCOL_MINOR)
 		writer.putUInt8(messageType);
-		writer.putUInt16(this.payload.length + DEVICE_ID_SIZE + DATA_TYPE_SIZE);
 	}
 
 
@@ -98,7 +101,7 @@ export class UartWrapperV2 {
 
 
 	_wrapPacket(packet : Buffer) : Buffer {
-		// calculate the CRC of the packet so
+		// calculate the CRC of the packet for everything after the size
 		let baseCrc = UartUtil.crc16_ccitt(packet);
 		let crcBuffer = Buffer.alloc(2 );
 		crcBuffer.writeUInt16LE(baseCrc,0);
@@ -107,7 +110,10 @@ export class UartWrapperV2 {
 
 		// escape everything except the START_TOKEN
 		let escapedPayload = this._escapeCharacters(packet);
+		let size = Buffer.alloc(LENGTH_SIZE);
+		size.writeUInt16LE(packet.length, 0)
 
-		return Buffer.concat( [Buffer.from([START_TOKEN]), escapedPayload]);
+
+		return Buffer.concat( [Buffer.from([START_TOKEN]), size, escapedPayload]);
 	}
 }

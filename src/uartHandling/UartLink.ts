@@ -2,12 +2,12 @@ import SerialPort from 'serialport'
 import {UartReadBuffer} from "./UartReadBuffer";
 import {UartParser} from "./UartParser";
 import {eventBus} from "../singletons/EventBus";
-import {UartEncryptionContainer} from "./UartEncryptionContainer";
 
 import {Logger} from "../Logger";
 import {UartWrapperPacketV2} from "./uartPackets/UartWrapperPacketV2";
 import {UartWrapperV2} from "./uartPackets/UartWrapperV2";
 import {UartTxType} from "../declarations/enums";
+import {UartTransferOverhead} from "./containers/UartTransferOverhead";
 const log = Logger(__filename);
 
 export class UartLink {
@@ -25,18 +25,18 @@ export class UartLink {
   unsubscribeHello = () => {};
   reconnectionCallback;
 
-  constructor(reconnectionCallback, encryptionContainer : UartEncryptionContainer) {
+  constructor(reconnectionCallback, transferOverhead : UartTransferOverhead) {
     this.reconnectionCallback = reconnectionCallback;
 
     // the read buffer will parse the message's outer container (start, end, crc);
     let parseCallback = (data : UartWrapperPacketV2) => { UartParser.parse(data) };
-    this.readBuffer = new UartReadBuffer(parseCallback, encryptionContainer);
+    this.readBuffer = new UartReadBuffer(parseCallback, transferOverhead);
 
     // load new, updated session nonce data into the container.
     this.unsubscribeEvents.push(
       eventBus.on(
         "SessionNonceReceived",
-        (data: Buffer) => { encryptionContainer.setIncomingSessionData(data); }
+        (data: Buffer) => { transferOverhead.setIncomingSessionData(data); }
     ));
   }
 
@@ -65,8 +65,6 @@ export class UartLink {
       this.port   = new SerialPort(port,{ baudRate: 230400 });
       this.parser = new SerialPort.parsers.ByteLength({length: 1});
       this.port.pipe(this.parser);
-
-      this.pingInterval = setInterval(() => { this.heartBeat()}, 2000)
 
       // bind all the events
       this.parser.on('data',(response) => { this.readBuffer.addByteArray(response); });
@@ -116,11 +114,6 @@ export class UartLink {
       })
   }
 
-
-  heartBeat() {
-
-  }
-
   async sayHello() {
     await this.write(new UartWrapperV2(UartTxType.HELLO).getPacket())
   }
@@ -134,6 +127,7 @@ export class UartLink {
 
   write(data : Buffer) : Promise<void> {
     return new Promise((resolve, reject) => {
+      log.verbose("Writing packet:", data);
       this.port.write(data, (err) => {
         if (err) {
           this.handleError(err);

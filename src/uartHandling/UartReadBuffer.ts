@@ -1,8 +1,8 @@
 import {UartUtil} from "../util/UartUtil";
 import {eventBus} from "../singletons/EventBus";
 import {UartWrapperPacketV2} from "./uartPackets/UartWrapperPacketV2";
-import {UartEncryptionContainer} from "./UartEncryptionContainer";
 import {Logger} from "../Logger";
+import {UartTransferOverhead} from "./containers/UartTransferOverhead";
 
 const log = Logger(__filename, true);
 
@@ -19,15 +19,15 @@ export class UartReadBuffer {
   active = false;
   reportedSize = 0;
 
-  encryptionContainer : UartEncryptionContainer;
+  transferOverhead : UartTransferOverhead;
 
   callback = null;
 
-  constructor(callback, encryptionContainer) {
+  constructor(callback, transferOverhead) {
     this.buffer = [];
     this.escapingNextToken = false;
     this.active = false;
-    this.encryptionContainer = encryptionContainer;
+    this.transferOverhead = transferOverhead;
 
     this.callback = callback;
 
@@ -115,8 +115,8 @@ export class UartReadBuffer {
 
     let packet = new UartWrapperPacketV2(
       Buffer.from(this.buffer),
-      this.encryptionContainer.incomingSessionData,
-      this.encryptionContainer.encryptionKey
+      this.transferOverhead.encryption.incomingSessionData,
+      this.transferOverhead.encryption.key
     );
     this.callback(packet);
     this.reset()

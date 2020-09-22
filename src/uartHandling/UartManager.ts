@@ -3,36 +3,36 @@ import {
   ControlType,
   StoneMultiSwitchPacket,
   MeshMultiSwitchPacket,
-  ControlPacketsGenerator, Util, SessionData
+  ControlPacketsGenerator, Util
 } from "crownstone-core";
 
 import {UartTxType} from "../declarations/enums";
 import {UartLinkManager} from "./UartLinkManager";
 import {UartWrapperV2} from "./uartPackets/UartWrapperV2";
-import {UartEncryptionContainer} from "./UartEncryptionContainer";
 import {Logger} from "../Logger";
+import {UartTransferOverhead} from "./containers/UartTransferOverhead";
 
 const log = Logger(__filename);
 
 export class UartManager {
 
   link : UartLinkManager;
-  encryptionContainer: UartEncryptionContainer;
+  transferOverhead: UartTransferOverhead;
   deviceId: number = 42;
 
 
   constructor(autoReconnect = true) {
-    this.encryptionContainer = new UartEncryptionContainer()
-    this.link = new UartLinkManager(autoReconnect, this.encryptionContainer);
+    this.transferOverhead = new UartTransferOverhead(this.deviceId)
+    this.link = new UartLinkManager(autoReconnect, this.transferOverhead);
   }
 
 
   setKey(key : string | Buffer) {
-    this.encryptionContainer.setKey(key);
+    this.transferOverhead.setKey(key);
   }
 
   refreshSessionData() {
-    this.encryptionContainer.refreshSessionData();
+    this.transferOverhead.refreshSessionData();
   }
 
 
@@ -114,19 +114,7 @@ export class UartManager {
 
 
   async write(uartMessage: UartWrapperV2) {
-    uartMessage.setDeviceId(this.deviceId)
-    if (this.encryptionContainer.encryptionKey !== null) {
-      // ENCRYPT
-      log.verbose("Encrypting packet...", uartMessage.getPacket())
-      let packet = uartMessage.getEncryptedPacket(
-        this.encryptionContainer.outgoingSessionData,
-        this.encryptionContainer.encryptionKey
-      );
-      return this.link.write(packet).catch();
-    }
-    else {
-      return this.link.write(uartMessage.getPacket()).catch();
-    }
+    return this.link.write(uartMessage).catch();
   }
 
 }
