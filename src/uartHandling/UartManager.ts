@@ -10,7 +10,9 @@ import {UartTxType} from "../declarations/enums";
 import {UartLinkManager} from "./UartLinkManager";
 import {UartWrapperV2} from "./uartPackets/UartWrapperV2";
 import {UartEncryptionContainer} from "./UartEncryptionContainer";
+import {Logger} from "../Logger";
 
+const log = Logger(__filename);
 
 export class UartManager {
 
@@ -115,6 +117,7 @@ export class UartManager {
     uartMessage.setDeviceId(this.deviceId)
     if (this.encryptionContainer.encryptionKey !== null) {
       // ENCRYPT
+      log.verbose("Encrypting packet...", uartMessage.getPacket())
       let packet = uartMessage.getEncryptedPacket(
         this.encryptionContainer.outgoingSessionData,
         this.encryptionContainer.encryptionKey

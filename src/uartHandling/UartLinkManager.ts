@@ -2,10 +2,10 @@ import SerialPort from 'serialport'
 import {UartLink} from "./UartLink";
 import {getSnapSerialList} from "./snapDiscovery";
 import {CONFIG} from "../config/config";
-import {UartWrapperV2} from "./uartPackets/UartWrapperV2";
 import {Util} from "crownstone-core";
 import {UartEncryptionContainer} from "./UartEncryptionContainer";
-
+import {Logger} from "../Logger";
+const log = Logger(__filename);
 
 let updatePorts = function() { return Promise.resolve({})}
 
@@ -28,8 +28,6 @@ else {
   }
 }
 
-import {Logger} from "../Logger";
-const log = Logger(__filename);
 
 export class UartLinkManager {
   autoReconnect = false;
@@ -147,6 +145,7 @@ export class UartLinkManager {
 
   async write(data: Buffer) {
     // handle encryption here.
+    log.verbose("Writing packet:", data);
     return await this.port.write(data);
   }
 
