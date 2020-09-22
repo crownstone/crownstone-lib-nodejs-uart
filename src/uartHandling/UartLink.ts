@@ -1,11 +1,11 @@
 import SerialPort from 'serialport'
 import {UartReadBuffer} from "./UartReadBuffer";
-import {UartWrapperPacket} from "./uartPackets/UartWrapperPacket";
 import {UartParser} from "./UartParser";
 import {eventBus} from "../singletons/EventBus";
 import {UartEncryptionContainer} from "./UartEncryptionContainer";
 
 import {Logger} from "../Logger";
+import {UartWrapperPacketV2} from "./uartPackets/UartWrapperPacketV2";
 const log = Logger(__filename);
 
 export class UartLink {
@@ -27,7 +27,7 @@ export class UartLink {
     this.reconnectionCallback = reconnectionCallback;
 
     // the read buffer will parse the message's outer container (start, end, crc);
-    let parseCallback = (data : UartWrapperPacket) => { UartParser.parse(data) };
+    let parseCallback = (data : UartWrapperPacketV2) => { UartParser.parse(data) };
     this.readBuffer = new UartReadBuffer(parseCallback, encryptionContainer);
 
     // load new, updated session nonce data into the container.

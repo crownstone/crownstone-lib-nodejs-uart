@@ -146,7 +146,7 @@ export class UartParser {
           stringResult += String.fromCharCode(byte);
         }
       }
-      console.log("LOG:", new Date().valueOf(),":"+stringResult)
+      log.debug("UartMessage", stringResult);
     }
     else if (dataType == UartRxType.UART_MESSAGE) {
       let string =  dataPacket.payload.toString();
