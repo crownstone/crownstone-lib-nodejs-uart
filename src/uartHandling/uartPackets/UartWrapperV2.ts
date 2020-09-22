@@ -26,7 +26,7 @@ export class UartWrapperV2 {
 	deviceId: number
 	payload: Buffer
 
-	constructor(dataType : number, payload : Buffer) {
+	constructor(dataType : number, payload : Buffer = Buffer.from([])) {
     this.dataType  = dataType
     this.payload = payload;
   }

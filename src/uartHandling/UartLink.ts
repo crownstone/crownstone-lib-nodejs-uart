@@ -6,6 +6,8 @@ import {UartEncryptionContainer} from "./UartEncryptionContainer";
 
 import {Logger} from "../Logger";
 import {UartWrapperPacketV2} from "./uartPackets/UartWrapperPacketV2";
+import {UartWrapperV2} from "./uartPackets/UartWrapperV2";
+import {UartTxType} from "../declarations/enums";
 const log = Logger(__filename);
 
 export class UartLink {
@@ -75,10 +77,10 @@ export class UartLink {
   }
 
 
-  handleNewConnection() {
+  async handleNewConnection() {
     log.info("Setting up new connection...")
     // we will try a handshake.
-    this.sayHello();
+    await this.sayHello();
 
     let closeTimeout = setTimeout(() => { if (!this.success) {
       log.info("Failed setting up connection, timeout");
@@ -119,8 +121,8 @@ export class UartLink {
 
   }
 
-  sayHello() {
-
+  async sayHello() {
+    await this.write(new UartWrapperV2(UartTxType.HELLO).getPacket())
   }
 
   // echo(string) {

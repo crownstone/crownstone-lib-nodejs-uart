@@ -2,7 +2,7 @@ import {eventBus} from "../singletons/EventBus";
 import {ServiceData} from "crownstone-core/dist/packets/ServiceData";
 import {UartRxType} from "../declarations/enums";
 import {ControlType, ResultPacket} from "crownstone-core";
-import {HelloPacket} from "./contentPackets/Hello";
+import {HelloPacket} from "./contentPackets/rx/Hello";
 
 import {Logger} from "../Logger";
 import {UartWrapperPacketV2} from "./uartPackets/UartWrapperPacketV2";
