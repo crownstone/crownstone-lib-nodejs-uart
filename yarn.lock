@@ -1040,10 +1040,10 @@ cross-spawn@^7.0.0:
     shebang-command "^2.0.0"
     which "^2.0.1"
 
-crownstone-core@^0.7.3:
-  version "0.7.3"
-  resolved "https://registry.yarnpkg.com/crownstone-core/-/crownstone-core-0.7.3.tgz#ffa331f65ad9342b59b648ef34da872884367b56"
-  integrity sha512-zbA4xe83otXFuPXOJ8aWr/lhMAz/4nDEdD0llcaQFqzZs45GaQOunEkg8Wu+EsneEDGxXuGdmCfBaHkylvnobg==
+crownstone-core@^0.7.5:
+  version "0.7.5"
+  resolved "https://registry.yarnpkg.com/crownstone-core/-/crownstone-core-0.7.5.tgz#bd7fc3fca226688154936f4e20a011de64334c27"
+  integrity sha512-Rv0iGG2Lke/X+Akxf2hfxNt/IyHSR0hFtVMGbtYCzz2Arj1Mo+HIiRJ+ebBISqxD6zN7EX9V9FvTxScdEb/s7Q==
   dependencies:
     aes-js "^3.1.1"
     winston "^3.3.3"
@@ -3150,7 +3150,7 @@ ret@~0.1.10:
   resolved "https://registry.yarnpkg.com/ret/-/ret-0.1.15.tgz#b8a4825d5bdb1fc3f6f53c2bc33f81388681c7bc"
   integrity sha512-TTlYpa+OL+vMMNG24xSlQGEJ3B/RzEfUlLct7b5G/ytav+wPrplCpVMFuwzXbkecJrb6IYo1iFb0S9v37754mg==
 
-rimraf@^3.0.0:
+rimraf@^3.0.0, rimraf@^3.0.2:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-3.0.2.tgz#f1a5402ba6220ad52cc1282bac1ae3aa49fd061a"
   integrity sha512-JZkJMZkAGFFPP2YqXZXPbMlMBgsxzE8ILs4lMIX/2o0L9UBw9O/Y3o6wFw/i9YLapcUJWwqbi3kdxIPdC62TIA==

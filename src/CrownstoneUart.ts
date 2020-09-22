@@ -5,6 +5,7 @@ const log = Logger(__filename);
 
 export class CrownstoneUart {
   uart : UartManager
+  log = log;
 
   constructor() {
     this.uart = new UartManager();

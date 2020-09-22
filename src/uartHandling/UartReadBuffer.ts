@@ -101,7 +101,7 @@ export class UartReadBuffer {
 
   process() {
     log.verbose("Processing buffer", this.buffer);
-    let payload = this.buffer.slice(0, this.buffer.length - CRC_SIZE);
+    let payload = this.buffer.slice(LENGTH_SIZE, this.buffer.length - CRC_SIZE);
     let calculatedCrc = UartUtil.crc16_ccitt(payload);
     let crcBuffer = Buffer.from(this.buffer.slice(this.buffer.length - CRC_SIZE, this.buffer.length));
     let sourceCrc = crcBuffer.readUInt16LE(0);
