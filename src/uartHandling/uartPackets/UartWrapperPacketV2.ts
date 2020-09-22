@@ -45,8 +45,7 @@ export class UartWrapperPacketV2 {
       this.encrypted = (this.messageType & 128) === 128;
       this.messageType = this.messageType & 127; // this will remove the encrypted flag and keep the actual type number
 
-      let innerMessageSize = this.messageSize - 3; // 3 = protocol major, minor, type
-
+      let innerMessageSize = this.messageSize - 3 - 2; // 3 = protocol major, minor, type, 2 = crc
       let uartMessage = null;
       if (this.messageSize > 0) {
         if (this.encrypted) {
