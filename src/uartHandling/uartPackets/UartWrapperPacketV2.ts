@@ -45,13 +45,15 @@ export class UartWrapperPacketV2 {
       this.encrypted = (this.messageType & 128) === 128;
       this.messageType = this.messageType & 127; // this will remove the encrypted flag and keep the actual type number
 
+      let innerMessageSize = this.messageSize - 3; // 3 = protocol major, minor, type
+
       let uartMessage = null;
       if (this.messageSize > 0) {
         if (this.encrypted) {
           if (!this.sessionData) { throw "No SessionData Loaded"; }
           if (!this.key)         { throw "No Encryption Key Loaded"; }
 
-          let encryptedmessage = stepper.getBuffer(this.messageSize);
+          let encryptedmessage = stepper.getBuffer(innerMessageSize);
           let decryptedBytes = EncryptionHandler.decryptCTR(encryptedmessage, this.sessionData, this.key);
           let decryptedDataWithPadding = EncryptionHandler.verifyAndExtractDecryption(decryptedBytes, this.sessionData);
           let decryptedStepper = new DataStepper(decryptedDataWithPadding);
@@ -59,7 +61,7 @@ export class UartWrapperPacketV2 {
           uartMessage = decryptedStepper.getBuffer(payloadSize);
         }
         else {
-          uartMessage = stepper.getBuffer(this.messageSize);
+          uartMessage = stepper.getBuffer(innerMessageSize);
         }
         this.crc = stepper.getUInt16();
 
