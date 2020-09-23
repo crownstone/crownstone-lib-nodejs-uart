@@ -48,6 +48,15 @@ export class CrownstoneUart {
     return this.uart.switchCrownstones(switchData);
   }
 
+  async switchCrownstone(stoneUID: number, percentage: number) : Promise<void> {
+    return this.switchCrownstones([{
+      type: "PERCENTAGE",
+      stoneId: stoneUID,
+      percentage: percentage // 0 ... 100
+    }]);
+  }
+
+
   async registerTrackedDevice(
     trackingNumber:number,
     locationUID:number,

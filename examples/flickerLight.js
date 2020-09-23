@@ -4,7 +4,7 @@ let crownstone = new Crownstone.CrownstoneUart()
 
 let asyncInit = async function() {
   await crownstone.start()
-  await crownstone.switchCrownstone(37, 1);
+  await crownstone.switchCrownstone(37, 100);
   await crownstone.close();
   await crownstone.delay(1000);
 }

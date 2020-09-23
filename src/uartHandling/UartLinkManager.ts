@@ -153,7 +153,8 @@ export class UartLinkManager {
 
 
   async heartBeat() {
-    await this.write(new UartWrapperV2(UartTxType.HEARTBEAT, Buffer.from([4])));
+    let timeout = Buffer.alloc(2); timeout.writeUInt16LE(4,0);
+    await this.write(new UartWrapperV2(UartTxType.HEARTBEAT, timeout));
   }
 
   async write(uartMessage: UartWrapperV2) {
