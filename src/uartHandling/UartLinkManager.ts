@@ -79,7 +79,7 @@ export class UartLinkManager {
     else {
       promise = UPDATE_PORTS()
         .then((available) => {
-          log.info("Available ports on the system", available);
+          log.debug("Available ports on the system", available);
           let ports = available;
           let portIds = Object.keys(ports);
           return Util.promiseBatchPerformer(portIds, (portId) => {

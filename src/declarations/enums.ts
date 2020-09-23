@@ -71,5 +71,7 @@ export const UartRxType = {
   POWER_LOG_POWER:                  50204,
 
   ASCII_LOG:                        60000,
+
+  TEST_STRINGS:                    60001,
 };
 

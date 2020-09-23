@@ -153,8 +153,12 @@ export class UartParser {
       log.verbose("UartMessage", string);
       eventBus.emit("UartMessage", {string: string, data: dataPacket.payload})
     }
+    else if (dataType == UartRxType.TEST_STRINGS) {
+      let string =  dataPacket.payload.toString();
+      log.silly("TEST_STRINGS", string);
+    }
     else {
-      console.log("Unknown OpCode", dataType, dataPacket)
+      log.notice("Unknown OpCode", dataType)
     }
 
     parsedData = null;

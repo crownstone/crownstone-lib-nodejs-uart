@@ -17,10 +17,12 @@ export class CrownstoneUart {
   }
 
   async close() : Promise<void> {
+    log.info("Closing CrownstoneUART.");
     return this.uart.link.close();
   }
 
   uartEcho(string : string) {
+    log.info("Sending uart echo", string);
     this.uart.echo(string)
   }
 
@@ -29,10 +31,12 @@ export class CrownstoneUart {
   }
 
   async turnOnCrownstone(stoneId: number) : Promise<void> {
+    log.info("turn on Crownstone", stoneId);
     return this.uart.switchCrownstones([{ type:"TURN_ON", stoneId }]);
   }
 
   async turnOffCrownstone(stoneId: number) : Promise<void> {
+    log.info("turn off Crownstone", stoneId);
     return this.uart.switchCrownstones([{ type:"TURN_OFF", stoneId }]);
   }
 
@@ -41,10 +45,12 @@ export class CrownstoneUart {
    * @param switchState   0...100
    */
   async dimCrownstone(stoneId: number, percentage: number) : Promise<void> {
+    log.info("dimCrownstone", stoneId, percentage);
     return this.uart.switchCrownstones([{ type:"PERCENTAGE", stoneId, percentage: percentage }]);
   }
 
   async switchCrownstones(switchData : SwitchData[]) : Promise<void> {
+    log.info("switch Crownstones", switchData);
     return this.uart.switchCrownstones(switchData);
   }
 
@@ -67,6 +73,7 @@ export class CrownstoneUart {
     deviceToken:number,
     ttlMinutes:number
   ) {
+    log.info("registerTrackedDevice", arguments);
     return this.uart.registerTrackedDevice(
       trackingNumber,
       locationUID,
@@ -84,6 +91,7 @@ export class CrownstoneUart {
   }
 
   async setTime(customTimeInSeconds?: number) {
+    log.info("setTime", customTimeInSeconds);
     return await this.uart.setTime(customTimeInSeconds);
   }
 
