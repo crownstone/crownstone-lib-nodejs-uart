@@ -39,9 +39,9 @@ export const UartRxType = {
   UART_MESSAGE:                     10000,
   NO_SESSION_NONCE_AVAILABLE:       10001,
   OWN_SERVICE_DATA:                 10002,
-  MESH_SERVICE_DATA:                10003,
   PRESENCE_CHANGE_PACKET:           10004,
 
+  MESH_SERVICE_DATA:                10102,
   EXTERNAL_STATE_PART_0:    	      10103,
   EXTERNAL_STATE_PART_1:    	      10104,
   MESH_RESULT:              	      10105,

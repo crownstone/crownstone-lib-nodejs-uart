@@ -20,7 +20,7 @@ export class UartParser {
       log.warn("Invalid packet, maybe wrong protocol?");
       return;
     }
-    log.debug("Handling packet:", dataPacket);
+    log.debug("Handling packet:", dataPacket.dataType);
 
     if (dataType === UartRxType.HELLO) {
       let hello = new HelloPacket(dataPacket.payload);
@@ -32,15 +32,11 @@ export class UartParser {
       }
     }
     else if (dataType === UartRxType.HEARTBEAT) {
-      if (dataPacket.payload.length === 2) {
-        eventBus.emit("HeartBeat", {timeout: dataPacket.payload.readUInt16LE(0)});
-      }else {
-        console.log("invalid HEARTBEAT packet", dataPacket.payload)
-      }
+      eventBus.emit("HeartBeat", null);
     }
     else if (dataType === UartRxType.STATUS) {
       if (dataPacket.payload.length === 1) {
-        eventBus.emit("HeartBeat", {timeout: dataPacket.payload.readUInt8(0)});
+        eventBus.emit("Status", {timeout: dataPacket.payload.readUInt8(0)});
       }else {
         console.log("invalid STATUS packet", dataPacket.payload)
       }

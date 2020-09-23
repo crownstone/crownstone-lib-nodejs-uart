@@ -58,7 +58,7 @@ export class UartLinkManager {
     if (this.autoReconnect) {
       this.port = null;
       this.triedPorts = [];
-      await Util.wait(100);
+      await Util.wait(250);
       return this.initiateConnection();
     }
   }
@@ -147,7 +147,7 @@ export class UartLinkManager {
         })
         .catch((err) => {
           clearInterval(this.heartBeatInterval);
-          log.info("Failed connection", port, err);
+          log.notice("Failed connection", port, err);
           reject(err);
         })
     })
