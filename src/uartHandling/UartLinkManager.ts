@@ -1,21 +1,23 @@
 import SerialPort from 'serialport'
-import {
-  Util,
-} from "crownstone-core";
 import {UartLink} from "./UartLink";
 import {getSnapSerialList} from "./snapDiscovery";
 import {CONFIG} from "../config/config";
+import {Util} from "crownstone-core";
+import {Logger} from "../Logger";
+import {UartWrapperV2} from "./uartPackets/UartWrapperV2";
+import {UartTransferOverhead} from "./containers/UartTransferOverhead";
+import {UartTxType} from "../declarations/enums";
+const log = Logger(__filename);
 
-
-let updatePorts = function() { return Promise.resolve({})}
+let UPDATE_PORTS;
 
 if (CONFIG.useSearchById) {
-  updatePorts = function() {
+  UPDATE_PORTS = function() {
     return getSnapSerialList()
   }
 }
 else {
-  updatePorts = function() {
+  UPDATE_PORTS = function() {
     return new Promise((resolve, reject) => {
       let availablePorts = {};
       SerialPort.list().then((ports) => {
@@ -28,19 +30,19 @@ else {
   }
 }
 
-
-const log = require('debug-level')('crownstone-uart-manager')
-
 export class UartLinkManager {
   autoReconnect = false;
 
+  transferOverhead: UartTransferOverhead;
   port : UartLink = null;
   connected = false;
   triedPorts = [];
 
+  heartBeatInterval = null;
   forcedPort = null;
 
-  constructor(autoReconnect = true) {
+  constructor(autoReconnect, transferOverhead: UartTransferOverhead) {
+    this.transferOverhead = transferOverhead;
     this.autoReconnect = autoReconnect;
   }
 
@@ -51,6 +53,8 @@ export class UartLinkManager {
 
   async restart() : Promise<void> {
     this.connected = false;
+    clearInterval(this.heartBeatInterval);
+
     if (this.autoReconnect) {
       this.port = null;
       this.triedPorts = [];
@@ -60,17 +64,20 @@ export class UartLinkManager {
   }
 
   close() : Promise<void> {
+    clearInterval(this.heartBeatInterval);
     return this.port.destroy();
   }
 
 
+
   initiateConnection() : Promise<void> {
+    clearInterval(this.heartBeatInterval);
     let promise;
     if (this.forcedPort) {
       promise = this.tryConnectingToPort(this.forcedPort);
     }
     else {
-      promise = updatePorts()
+      promise = UPDATE_PORTS()
         .then((available) => {
           log.info("Available ports on the system", available);
           let ports = available;
@@ -129,26 +136,44 @@ export class UartLinkManager {
       this.connected = false;
       log.info("Trying port", port);
       this.triedPorts.push(port);
-      let link = new UartLink(() => { this.restart(); });
+      let link = new UartLink(() => { this.restart(); }, this.transferOverhead);
       link.tryConnectingToPort(port)
         .then(() => {
           log.info("Successful connection to ", port);
           this.port = link;
           this.connected = true;
+          this.heartBeatInterval = setInterval(() => { this.heartBeat()}, 2000);
           resolve();
         })
         .catch((err) => {
+          clearInterval(this.heartBeatInterval);
           log.info("Failed connection", port, err);
           reject(err);
         })
     })
   }
 
-  echo(data) {
-    this.port.echo(data);
+
+  async heartBeat() {
+    let timeout = Buffer.alloc(2); timeout.writeUInt16LE(4,0);
+    await this.write(new UartWrapperV2(UartTxType.HEARTBEAT, timeout));
   }
-  write(data) {
-    this.port.write(data);
+
+  async write(uartMessage: UartWrapperV2) {
+    // handle encryption here.
+    uartMessage.setDeviceId(this.transferOverhead.deviceId)
+    if (this.transferOverhead.encryption.key !== null) {
+      // ENCRYPT
+      log.verbose("Encrypting packet...", uartMessage.getPacket())
+      let packet = uartMessage.getEncryptedPacket(
+        this.transferOverhead.encryption.outgoingSessionData,
+        this.transferOverhead.encryption.key
+      );
+      return this.port.write(packet).catch();
+    }
+    else {
+      return this.port.write(uartMessage.getPacket()).catch();
+    }
   }
 
 }

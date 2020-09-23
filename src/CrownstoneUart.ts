@@ -1,10 +1,11 @@
 import {UartManager} from "./uartHandling/UartManager";
 import {eventBus} from "./singletons/EventBus";
-
-const log = require('debug-level')('crownstone-uart')
+import {Logger} from './Logger'
+const log = Logger(__filename);
 
 export class CrownstoneUart {
   uart : UartManager
+  log = log;
 
   constructor() {
     this.uart = new UartManager();
@@ -20,7 +21,7 @@ export class CrownstoneUart {
   }
 
   uartEcho(string : string) {
-    this.uart.link.echo(string)
+    this.uart.echo(string)
   }
 
   on(topic : string, callback : (data: any) => void) : () => void {
@@ -46,6 +47,15 @@ export class CrownstoneUart {
   async switchCrownstones(switchData : SwitchData[]) : Promise<void> {
     return this.uart.switchCrownstones(switchData);
   }
+
+  async switchCrownstone(stoneUID: number, percentage: number) : Promise<void> {
+    return this.switchCrownstones([{
+      type: "PERCENTAGE",
+      stoneId: stoneUID,
+      percentage: percentage // 0 ... 100
+    }]);
+  }
+
 
   async registerTrackedDevice(
     trackingNumber:number,

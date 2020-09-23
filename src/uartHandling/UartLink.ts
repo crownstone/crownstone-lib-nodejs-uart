@@ -1,14 +1,14 @@
 import SerialPort from 'serialport'
 import {UartReadBuffer} from "./UartReadBuffer";
-import {UartPacket} from "./uartPackets/UartWrapperPacket";
 import {UartParser} from "./UartParser";
 import {eventBus} from "../singletons/EventBus";
-import { ControlPacket, ControlType }  from "crownstone-core";
-import {UartTxType} from "../declarations/enums";
-import {UartWrapper} from "./uartPackets/UartWrapper";
 
-const HANDSHAKE = "HelloCrownstone";
-const log = require('debug-level')('crownstone-uart-link')
+import {Logger} from "../Logger";
+import {UartWrapperPacketV2} from "./uartPackets/UartWrapperPacketV2";
+import {UartWrapperV2} from "./uartPackets/UartWrapperV2";
+import {UartTxType} from "../declarations/enums";
+import {UartTransferOverhead} from "./containers/UartTransferOverhead";
+const log = Logger(__filename);
 
 export class UartLink {
   port    : SerialPort = null;
@@ -21,12 +21,23 @@ export class UartLink {
   rejecter;
   pingInterval;
 
-  unsubscribe = () => {};
+  unsubscribeEvents : (() => void)[] = [];
+  unsubscribeHello = () => {};
   reconnectionCallback;
 
-  constructor(reconnectionCallback) {
+  constructor(reconnectionCallback, transferOverhead : UartTransferOverhead) {
     this.reconnectionCallback = reconnectionCallback;
-    this.readBuffer = new UartReadBuffer((data : UartPacket) => { UartParser.parse(data) });
+
+    // the read buffer will parse the message's outer container (start, end, crc);
+    let parseCallback = (data : UartWrapperPacketV2) => { UartParser.parse(data) };
+    this.readBuffer = new UartReadBuffer(parseCallback, transferOverhead);
+
+    // load new, updated session nonce data into the container.
+    this.unsubscribeEvents.push(
+      eventBus.on(
+        "SessionNonceReceived",
+        (data: Buffer) => { transferOverhead.setIncomingSessionData(data); }
+    ));
   }
 
   destroy() : Promise<void> {
@@ -37,7 +48,8 @@ export class UartLink {
   }
 
   cleanup() {
-    this.unsubscribe();
+    this.unsubscribeHello();
+    this.unsubscribeEvents.forEach((unsub) => { unsub(); });
 
     if (this.port) { this.port.removeAllListeners(); }
     if (this.parser) { this.parser.removeAllListeners(); }
@@ -54,8 +66,6 @@ export class UartLink {
       this.parser = new SerialPort.parsers.ByteLength({length: 1});
       this.port.pipe(this.parser);
 
-      this.pingInterval = setInterval(() => { this.echo("ping")}, 2000)
-
       // bind all the events
       this.parser.on('data',(response) => { this.readBuffer.addByteArray(response); });
       this.port.on("open",  ()         => { this.handleNewConnection();             });
@@ -65,23 +75,23 @@ export class UartLink {
   }
 
 
-  handleNewConnection() {
+  async handleNewConnection() {
+    log.info("Setting up new connection...")
     // we will try a handshake.
-    this.echo(HANDSHAKE);
+    await this.sayHello();
 
-    let closeTimeout = setTimeout(() => { if (!this.success) { this.closeConnection(); this.rejecter(); }}, 1000);
+    let closeTimeout = setTimeout(() => { if (!this.success) {
+      log.info("Failed setting up connection, timeout");
+      this.closeConnection();
+      this.rejecter();
+    }}, 1000);
 
-    this.unsubscribe = eventBus.on("UartMessage", (message) => {
-      if (message?.string === HANDSHAKE) {
-        clearTimeout(closeTimeout);
-        this.success = true;
-        this.unsubscribe();
-        this.resolver();
-      }
-      else {
-        // handle failure
-      }
-    })
+    this.unsubscribeHello = eventBus.on("HelloReceived", (message) => {
+      clearTimeout(closeTimeout);
+      this.success = true;
+      this.unsubscribeHello();
+      this.resolver();
+    });
   }
 
 
@@ -104,17 +114,29 @@ export class UartLink {
       })
   }
 
-
-  echo(string) {
-    let controlPacket = new ControlPacket(ControlType.UART_MESSAGE).loadString(string).getPacket();
-    let uartPacket    = new UartWrapper(  UartTxType.CONTROL, controlPacket).getPacket();
-
-    this.write(uartPacket);
+  async sayHello() {
+    await this.write(new UartWrapperV2(UartTxType.HELLO).getPacket())
   }
 
-  write(data : Buffer) {
-    this.port.write(data, (err) => {
-      if (err) { this.handleError(err); }
+  // echo(string) {
+  //   let controlPacket = new ControlPacket(ControlType.UART_MESSAGE).loadString(string).getPacket();
+  //   let uartPacket    = new UartWrapper(  UartTxType.CONTROL, controlPacket).getPacket();
+  //
+  //   this.write(uartPacket);
+  // }
+
+  write(data : Buffer) : Promise<void> {
+    return new Promise((resolve, reject) => {
+      log.verbose("Writing packet:", data);
+      this.port.write(data, (err) => {
+        if (err) {
+          this.handleError(err);
+          reject(err);
+        }
+        else {
+          resolve()
+        }
+      });
     });
   }
 

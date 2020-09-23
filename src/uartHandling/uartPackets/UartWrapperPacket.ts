@@ -4,7 +4,7 @@
  */
 import {DataStepper} from "crownstone-core/dist/util/DataStepper";
 
-export class UartPacket {
+export class UartWrapperPacket {
   opCode  : number;
   size    : number;
   crc     : number;

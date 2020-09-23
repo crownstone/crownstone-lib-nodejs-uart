@@ -7,19 +7,36 @@ import {
 } from "crownstone-core";
 
 import {UartTxType} from "../declarations/enums";
-import {UartWrapper} from "./uartPackets/UartWrapper";
 import {UartLinkManager} from "./UartLinkManager";
+import {UartWrapperV2} from "./uartPackets/UartWrapperV2";
+import {Logger} from "../Logger";
+import {UartTransferOverhead} from "./containers/UartTransferOverhead";
 
+const log = Logger(__filename);
 
 export class UartManager {
 
   link : UartLinkManager;
+  transferOverhead: UartTransferOverhead;
+  deviceId: number = 42;
+
 
   constructor(autoReconnect = true) {
-    this.link = new UartLinkManager(autoReconnect);
+    this.transferOverhead = new UartTransferOverhead(this.deviceId)
+    this.link = new UartLinkManager(autoReconnect, this.transferOverhead);
   }
 
-  switchCrownstones(switchData : SwitchData[]) : Promise<void> {
+
+  setKey(key : string | Buffer) {
+    this.transferOverhead.setKey(key);
+  }
+
+  refreshSessionData() {
+    this.transferOverhead.refreshSessionData();
+  }
+
+
+  async switchCrownstones(switchData : SwitchData[]) : Promise<void> {
     // create a stone switch state packet to go into the multi switch
     let packets : StoneMultiSwitchPacket[] = [];
     switchData.forEach((data) => {
@@ -39,16 +56,15 @@ export class UartManager {
     // wrap that in a control packet
     let controlPacket = new ControlPacket(ControlType.MULTISWITCH).loadByteArray(meshMultiSwitchPacket).getPacket();
 
-
     // finally wrap it in an Uart packet
-    let uartPacket = new UartWrapper(UartTxType.CONTROL, controlPacket).getPacket();
+    let uartPacket = new UartWrapperV2(UartTxType.CONTROL, controlPacket)
 
-    this.link.write(uartPacket);
-
-    return new Promise((resolve, reject) => { setTimeout(() => { resolve() }, 100); });
+    await this.write(uartPacket)
+    await Util.wait(100);
   }
 
-  registerTrackedDevice(
+
+  async registerTrackedDevice(
     trackingNumber:number,
     locationUID:number,
     profileId:number,
@@ -70,25 +86,35 @@ export class UartManager {
       ttlMinutes
     );
 
-    let uartPacket = new UartWrapper(UartTxType.CONTROL, registrationPacket).getPacket();
+    let uartPacket = new UartWrapperV2(UartTxType.CONTROL, registrationPacket);
 
-    this.link.write(uartPacket);
-
-    return new Promise((resolve, reject) => { setTimeout(() => { resolve() }, 100); });
+    await this.write(uartPacket)
+    await Util.wait(100);
   }
 
-  setTime(customTimeInSeconds?: number) {
+
+  async setTime(customTimeInSeconds?: number) {
     if (!customTimeInSeconds) {
       customTimeInSeconds = Util.nowToCrownstoneTime();
     }
-
     let setTimePacket = ControlPacketsGenerator.getSetTimePacket(customTimeInSeconds);
+    let uartPacket = new UartWrapperV2(UartTxType.CONTROL, setTimePacket)
 
-    let uartPacket = new UartWrapper(UartTxType.CONTROL, setTimePacket).getPacket();
+    await this.write(uartPacket)
+    await Util.wait(100);
+  }
 
-    this.link.write(uartPacket);
+  async echo(string: string) {
+    let echoCommandPacket = ControlPacketsGenerator.getUartMessagePacket(string)
+    let uartPacket = new UartWrapperV2(UartTxType.CONTROL, echoCommandPacket)
 
-    return new Promise((resolve, reject) => { setTimeout(() => { resolve() }, 100); });
+    await this.write(uartPacket)
+    await Util.wait(100);
+  }
+
+
+  async write(uartMessage: UartWrapperV2) {
+    return this.link.write(uartMessage).catch();
   }
 
 }
