@@ -1040,12 +1040,19 @@ cross-spawn@^7.0.0:
     shebang-command "^2.0.0"
     which "^2.0.1"
 
-crownstone-core@^0.7.7:
-  version "0.7.7"
-  resolved "https://registry.yarnpkg.com/crownstone-core/-/crownstone-core-0.7.7.tgz#ef879f3db499f349e8b68d1b71c57b4a06e8ec48"
-  integrity sha512-JqlCxJ5Z0f2ebVzclVucZxH/VhVdWsonrSo3WCW2WSXmMpyz3G3rJ21avvaSpszSt+LIxnNN8T3fhHhLM1i5Sw==
+crownstone-core@^0.8.0:
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/crownstone-core/-/crownstone-core-0.8.0.tgz#ed50c7c99eba5a56b686561159755758f7a93126"
+  integrity sha512-zucp4e1618cVY+Nt4KxqoYL7KEw4s41r8hqnQ8iBq7ABTrgd40nyZ975wWG55xIyeXyqm9ESOIfkCCVXIkjdcA==
   dependencies:
     aes-js "^3.1.1"
+    crownstone-logger "^0.1.0"
+
+crownstone-logger@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/crownstone-logger/-/crownstone-logger-0.1.0.tgz#ef8989666b5ff2f1dc187483ab9c19e03f55b63c"
+  integrity sha512-YhvgY4l24QMpHey3KTs3+ZKJK67U6d9rDWFMg/1cc9lOpcjdmBHdUHWJN6PGcIM923QNKDTLie8+G0yyalOETA==
+  dependencies:
     winston "^3.3.3"
     winston-daily-rotate-file "^4.5.0"
 
