@@ -59,7 +59,7 @@ export class UartReadBuffer {
 
 
     if (!this.active) {
-      log.verbose("not active!", byte);
+      log.silly("not active!", byte);
       return
     }
     if (byte === ESCAPE_TOKEN) {
@@ -79,7 +79,7 @@ export class UartReadBuffer {
       this.escapingNextToken = false
     }
     this.buffer.push(byte);
-    log.verbose("adding byte to buffer:", byte, this.buffer)
+    log.silly("adding byte to buffer:", byte, this.buffer)
     let bufferSize = this.buffer.length;
 
     if (bufferSize == LENGTH_SIZE) {

@@ -99,7 +99,6 @@ export class UartManager {
     }
     let setTimePacket = ControlPacketsGenerator.getSetTimePacket(customTimeInSeconds);
     let uartPacket = new UartWrapperV2(UartTxType.CONTROL, setTimePacket)
-
     await this.write(uartPacket)
     await Util.wait(100);
   }

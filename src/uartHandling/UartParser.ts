@@ -20,6 +20,8 @@ export class UartParser {
       log.warn("Invalid packet, maybe wrong protocol?");
       return;
     }
+
+    eventBus.emit("RxTypeReceived", dataPacket.dataType);
     log.debug("Handling packet:", dataPacket.dataType);
 
     if (dataType === UartRxType.HELLO) {
@@ -72,7 +74,7 @@ export class UartParser {
       if (serviceData.validData) {
         if (MeshDataUniquenessChecker[serviceData.crownstoneId] !== serviceData.uniqueIdentifier) {
           MeshDataUniquenessChecker[serviceData.crownstoneId] = serviceData.uniqueIdentifier;
-          log.debug("MeshServiceData", serviceData.getJSON())
+          log.verbose("MeshServiceData", serviceData.getJSON())
           eventBus.emit("MeshServiceData", serviceData.getJSON())
         }
       }

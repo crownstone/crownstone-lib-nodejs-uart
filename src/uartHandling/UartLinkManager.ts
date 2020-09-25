@@ -38,7 +38,6 @@ export class UartLinkManager {
   connected = false;
   triedPorts = [];
 
-  heartBeatInterval = null;
   forcedPort = null;
 
   constructor(autoReconnect, transferOverhead: UartTransferOverhead) {
@@ -53,7 +52,6 @@ export class UartLinkManager {
 
   async restart() : Promise<void> {
     this.connected = false;
-    clearInterval(this.heartBeatInterval);
 
     if (this.autoReconnect) {
       this.port = null;
@@ -64,14 +62,12 @@ export class UartLinkManager {
   }
 
   close() : Promise<void> {
-    clearInterval(this.heartBeatInterval);
     return this.port.destroy();
   }
 
 
 
   initiateConnection() : Promise<void> {
-    clearInterval(this.heartBeatInterval);
     let promise;
     if (this.forcedPort) {
       promise = this.tryConnectingToPort(this.forcedPort);
@@ -142,11 +138,10 @@ export class UartLinkManager {
           log.info("Successful connection to ", port);
           this.port = link;
           this.connected = true;
-          this.heartBeatInterval = setInterval(() => { this.heartBeat()}, 2000);
+
           resolve();
         })
         .catch((err) => {
-          clearInterval(this.heartBeatInterval);
           log.notice("Failed connection", port, err);
           reject(err);
         })
@@ -154,26 +149,8 @@ export class UartLinkManager {
   }
 
 
-  async heartBeat() {
-    let timeout = Buffer.alloc(2); timeout.writeUInt16LE(4,0);
-    await this.write(new UartWrapperV2(UartTxType.HEARTBEAT, timeout));
-  }
-
   async write(uartMessage: UartWrapperV2) {
-    // handle encryption here.
-    uartMessage.setDeviceId(this.transferOverhead.deviceId)
-    if (this.transferOverhead.encryption.key !== null) {
-      // ENCRYPT
-      log.verbose("Encrypting packet...", uartMessage.getPacket())
-      let packet = uartMessage.getEncryptedPacket(
-        this.transferOverhead.encryption.outgoingSessionData,
-        this.transferOverhead.encryption.key
-      );
-      return this.port.write(packet).catch();
-    }
-    else {
-      return this.port.write(uartMessage.getPacket()).catch();
-    }
+    return this.port.write(uartMessage).catch();
   }
 
 }

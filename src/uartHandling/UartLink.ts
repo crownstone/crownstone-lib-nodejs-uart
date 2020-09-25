@@ -6,8 +6,9 @@ import {eventBus} from "../singletons/EventBus";
 import {Logger} from "../Logger";
 import {UartWrapperPacketV2} from "./uartPackets/UartWrapperPacketV2";
 import {UartWrapperV2} from "./uartPackets/UartWrapperV2";
-import {UartTxType} from "../declarations/enums";
+import {UartRxType, UartTxType} from "../declarations/enums";
 import {UartTransferOverhead} from "./containers/UartTransferOverhead";
+import {UartMessageQueue} from "./containers/UartMessageQueue";
 const log = Logger(__filename);
 
 export class UartLink {
@@ -24,8 +25,14 @@ export class UartLink {
   unsubscribeEvents : (() => void)[] = [];
   unsubscribeHello = () => {};
   reconnectionCallback;
+  heartBeatInterval = null;
+
+  transferOverhead: UartTransferOverhead;
+  queue : UartMessageQueue;
 
   constructor(reconnectionCallback, transferOverhead : UartTransferOverhead) {
+    this.queue = new UartMessageQueue((data) => { return this._write(data); })
+    this.transferOverhead = transferOverhead;
     this.reconnectionCallback = reconnectionCallback;
 
     // the read buffer will parse the message's outer container (start, end, crc);
@@ -41,6 +48,7 @@ export class UartLink {
   }
 
   destroy() : Promise<void> {
+    clearInterval(this.heartBeatInterval);
     return new Promise((resolve, reject) => {
       this.cleanup();
       this.port.close(() => { resolve(); });
@@ -48,6 +56,7 @@ export class UartLink {
   }
 
   cleanup() {
+    clearInterval(this.heartBeatInterval);
     this.unsubscribeHello();
     this.unsubscribeEvents.forEach((unsub) => { unsub(); });
 
@@ -55,6 +64,7 @@ export class UartLink {
     if (this.parser) { this.parser.removeAllListeners(); }
 
     clearInterval(this.pingInterval);
+    this.queue.cleanup();
   }
 
   tryConnectingToPort(port)  : Promise<void> {
@@ -78,24 +88,26 @@ export class UartLink {
   async handleNewConnection() {
     log.info("Setting up new connection...")
     // we will try a handshake.
-    await this.sayHello();
-
     let closeTimeout = setTimeout(() => { if (!this.success) {
       log.info("Failed setting up connection, timeout");
       this.closeConnection();
       this.rejecter();
     }}, 1000);
 
-    this.unsubscribeHello = eventBus.on("HelloReceived", (message) => {
+    this.unsubscribeHello = eventBus.on("HelloReceived", () => {
       clearTimeout(closeTimeout);
       this.success = true;
       this.unsubscribeHello();
+      this.heartBeatInterval = setInterval(() => { this.heartBeat()}, 2000);
       this.resolver();
     });
+
+    await this.write(new UartWrapperV2(UartTxType.HELLO))
   }
 
 
   closeConnection() {
+    clearInterval(this.heartBeatInterval);
     let connectionHasBeenSuccessful = this.success;
     this.port.close(() => { this.cleanup(); });
     if (connectionHasBeenSuccessful) {
@@ -114,8 +126,9 @@ export class UartLink {
       })
   }
 
-  async sayHello() {
-    await this.write(new UartWrapperV2(UartTxType.HELLO).getPacket())
+  async heartBeat() {
+    let timeout = Buffer.alloc(2); timeout.writeUInt16LE(4,0);
+    await this.write(new UartWrapperV2(UartTxType.HEARTBEAT, timeout));
   }
 
   // echo(string) {
@@ -125,9 +138,32 @@ export class UartLink {
   //   this.write(uartPacket);
   // }
 
-  write(data : Buffer) : Promise<void> {
+  async write(uartMessage: UartWrapperV2) : Promise<void> {
+    // handle encryption here.
+    uartMessage.setDeviceId(this.transferOverhead.deviceId);
+    let dataType = uartMessage.dataType
+    let packet;
+    if (this.transferOverhead.encryption.key !== null && dataType !== UartRxType.HELLO) {
+      // ENCRYPT
+      log.verbose("Encrypting packet...", uartMessage.getPacket())
+      let encryptedPacket = uartMessage.getEncryptedPacket(
+        this.transferOverhead.encryption.outgoingSessionData,
+        this.transferOverhead.encryption.key
+      );
+      packet = encryptedPacket;
+    }
+    else {
+      packet = uartMessage.getPacket();
+    }
+
     return new Promise((resolve, reject) => {
-      log.verbose("Writing packet:", data);
+      this.queue.add(uartMessage.dataType, packet, resolve, reject);
+    });
+  }
+
+  _write(data) : Promise<void> {
+    return new Promise((resolve, reject) => {
+      log.verbose("Writing packet");
       this.port.write(data, (err) => {
         if (err) {
           this.handleError(err);
