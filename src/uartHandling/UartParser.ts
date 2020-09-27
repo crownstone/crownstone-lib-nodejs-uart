@@ -155,6 +155,24 @@ export class UartParser {
       let string =  dataPacket.payload.toString();
       log.silly("TEST_STRINGS", string);
     }
+    else if (dataType == UartRxType.PROFILE_LOCATION) {
+      // This might have to be handled in the future.
+    }
+    else if (dataType == UartRxType.BEHAVIOUR_SETTINGS) {
+      // This might have to be handled in the future.
+    }
+    else if (dataType == UartRxType.TRACKED_DEVICE_REGISTER) {
+      // This might have to be handled in the future.
+    }
+    else if (dataType == UartRxType.TRACKED_DEVICE_TOKEN) {
+      // This might have to be handled in the future.
+    }
+    else if (dataType == UartRxType.TRACKED_DEVICE_HEARTBEAT) {
+      // This might have to be handled in the future.
+    }
+    else if (dataType == UartRxType.SYNC_REQUEST) {
+      // This might have to be handled in the future.
+    }
     else {
       log.notice("Unknown OpCode", dataType)
     }
