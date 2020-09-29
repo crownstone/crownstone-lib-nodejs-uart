@@ -1056,6 +1056,14 @@ crownstone-logger@^0.1.2:
     winston "^3.3.3"
     winston-daily-rotate-file "^4.5.0"
 
+crownstone-logger@^0.1.4:
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/crownstone-logger/-/crownstone-logger-0.1.4.tgz#00ba2d0367667fdc9306aa256b3bc704e1bbb7ed"
+  integrity sha512-B8S6lE1joWWA2bu8w908mz1g2qHNOCgzCLfGz2m1ATf/BM++EPn5ct9gYExWXGUHFXiV7veUubjBzW+grqREJA==
+  dependencies:
+    winston "^3.3.3"
+    winston-daily-rotate-file "^4.5.0"
+
 cssom@^0.4.1:
   version "0.4.4"
   resolved "https://registry.yarnpkg.com/cssom/-/cssom-0.4.4.tgz#5a66cf93d2d0b661d80bf6a44fb65f5c2e4e0a10"
