@@ -6,9 +6,13 @@ import {HelloPacket} from "./contentPackets/rx/Hello";
 
 import {Logger} from "../Logger";
 import {UartWrapperPacketV2} from "./uartPackets/UartWrapperPacketV2";
+import {MeshExternalStatePart0} from "./uartPackets/parser/MeshExternalStatePart0";
+import {MeshExternalStatePart1} from "./uartPackets/parser/MeshExternalStatePart1";
 const log = Logger(__filename, true);
 
 const MeshDataUniquenessChecker = {};
+const MeshDataUniquenessChecker_part0 = {};
+const MeshDataUniquenessChecker_part1 = {};
 
 export class UartParser {
 
@@ -131,10 +135,24 @@ export class UartParser {
       // CrownstoneEventBus.emit(DevTopics.adcRestarted, null)
     }
     else if (dataType == UartRxType.EXTERNAL_STATE_PART_0) {
-      // CrownstoneEventBus.emit(DevTopics.adcRestarted, null)
+      let serviceData = new MeshExternalStatePart0(dataPacket.payload);
+      if (serviceData.valid) {
+        // if (MeshDataUniquenessChecker_part0[serviceData.crownstoneId] !== serviceData.uniqueIdentifier) {
+        //   MeshDataUniquenessChecker[serviceData.crownstoneId] = serviceData.uniqueIdentifier;
+        //   log.verbose("MeshServiceData", serviceData.getJSON())
+        //   eventBus.emit("MeshServiceData", serviceData.getJSON())
+        // }
+      }
     }
     else if (dataType == UartRxType.EXTERNAL_STATE_PART_1) {
-      // CrownstoneEventBus.emit(DevTopics.adcRestarted, null)
+      let serviceData = new MeshExternalStatePart1(dataPacket.payload);
+      if (serviceData.valid) {
+        // if (MeshDataUniquenessChecker_part0[serviceData.crownstoneId] !== serviceData.uniqueIdentifier) {
+        //   MeshDataUniquenessChecker[serviceData.crownstoneId] = serviceData.uniqueIdentifier;
+        //   log.verbose("MeshServiceData", serviceData.getJSON())
+        //   eventBus.emit("MeshServiceData", serviceData.getJSON())
+        // }
+      }
     }
     else if (dataType == UartRxType.ASCII_LOG) {
       let stringResult = ""
