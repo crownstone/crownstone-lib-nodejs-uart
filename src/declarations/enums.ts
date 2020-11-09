@@ -40,6 +40,8 @@ export const UartRxType = {
   NO_SESSION_NONCE_AVAILABLE:       10001,
   OWN_SERVICE_DATA:                 10002,
   PRESENCE_CHANGE_PACKET:           10004,
+  FACTORY_RESET:                    10005,
+  BOOT:                             10006,
 
   MESH_SERVICE_DATA:                10102,
   EXTERNAL_STATE_PART_0:    	      10103,
@@ -72,6 +74,6 @@ export const UartRxType = {
 
   ASCII_LOG:                        60000,
 
-  TEST_STRINGS:                    60001,
+  TEST_STRINGS:                     60001,
 };
 

@@ -49,7 +49,7 @@ export class UartParser {
     }
     else if (dataType === UartRxType.SESSION_NONCE) {
       if (dataPacket.payload.length === 5) {
-        eventBus.emit("SessionNonceReceived", {timeout: dataPacket.payload});
+        eventBus.emit("SessionNonceReceived", dataPacket.payload);
       }else {
         console.log("invalid session nonce packet", dataPacket.payload)
       }
@@ -137,21 +137,21 @@ export class UartParser {
     else if (dataType == UartRxType.EXTERNAL_STATE_PART_0) {
       let serviceData = new MeshExternalStatePart0(dataPacket.payload);
       if (serviceData.valid) {
-        // if (MeshDataUniquenessChecker_part0[serviceData.crownstoneId] !== serviceData.uniqueIdentifier) {
-        //   MeshDataUniquenessChecker[serviceData.crownstoneId] = serviceData.uniqueIdentifier;
-        //   log.verbose("MeshServiceData", serviceData.getJSON())
-        //   eventBus.emit("MeshServiceData", serviceData.getJSON())
-        // }
+        if (MeshDataUniquenessChecker_part0[serviceData.crownstoneId] !== serviceData.uniqueIdentifier) {
+          MeshDataUniquenessChecker_part0[serviceData.crownstoneId] = serviceData.uniqueIdentifier;
+          log.silly("MeshServiceData_part0", serviceData.getJSON())
+          eventBus.emit("MeshServiceData_part0", serviceData.getJSON())
+        }
       }
     }
     else if (dataType == UartRxType.EXTERNAL_STATE_PART_1) {
       let serviceData = new MeshExternalStatePart1(dataPacket.payload);
       if (serviceData.valid) {
-        // if (MeshDataUniquenessChecker_part0[serviceData.crownstoneId] !== serviceData.uniqueIdentifier) {
-        //   MeshDataUniquenessChecker[serviceData.crownstoneId] = serviceData.uniqueIdentifier;
-        //   log.verbose("MeshServiceData", serviceData.getJSON())
-        //   eventBus.emit("MeshServiceData", serviceData.getJSON())
-        // }
+        if (MeshDataUniquenessChecker_part1[serviceData.crownstoneId] !== serviceData.uniqueIdentifier) {
+          MeshDataUniquenessChecker_part1[serviceData.crownstoneId] = serviceData.uniqueIdentifier;
+          log.silly("MeshServiceData", serviceData.getJSON())
+          eventBus.emit("MeshServiceData_part1", serviceData.getJSON())
+        }
       }
     }
     else if (dataType == UartRxType.ASCII_LOG) {
@@ -188,7 +188,7 @@ export class UartParser {
     else if (dataType == UartRxType.TRACKED_DEVICE_HEARTBEAT) {
       // This might have to be handled in the future.
     }
-    else if (dataType == UartRxType.SYNC_REQUEST) {
+    else if (dataType == UartRxType.PRESENCE_CHANGE_PACKET) {
       // This might have to be handled in the future.
     }
     else {

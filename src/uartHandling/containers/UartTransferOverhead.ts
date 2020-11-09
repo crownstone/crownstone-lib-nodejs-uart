@@ -27,6 +27,10 @@ export class UartTransferOverhead {
     this.encryption.outgoingSessionData.generate();
   }
 
+  reset() {
+    this.encryption.reset();
+  }
+
   setIncomingSessionData(buffer: Buffer) {
     try {
       this.encryption.incomingSessionData.load(buffer)

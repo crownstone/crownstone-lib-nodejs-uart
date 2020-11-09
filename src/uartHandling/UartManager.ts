@@ -31,8 +31,13 @@ export class UartManager {
     this.transferOverhead.setKey(key);
   }
 
-  refreshSessionData() {
+  async refreshSessionData() {
     this.transferOverhead.refreshSessionData();
+    let sessionNoncePacket = new UartWrapperV2(
+      UartTxType.SESSION_NONCE,
+      this.transferOverhead.encryption.outgoingSessionData.sessionNonce
+    );
+    await this.write(sessionNoncePacket);
   }
 
 

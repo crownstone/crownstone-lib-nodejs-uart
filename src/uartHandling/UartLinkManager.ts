@@ -66,7 +66,6 @@ export class UartLinkManager {
   }
 
 
-
   initiateConnection() : Promise<void> {
     let promise;
     if (this.forcedPort) {
@@ -114,9 +113,7 @@ export class UartLinkManager {
       log.info("initiateConnection error", err)
       this.triedPorts = [];
       if (this.autoReconnect) {
-        return new Promise((resolve, reject) => {
-          setTimeout(() => { resolve(); }, 500);
-        })
+        Util.wait(500)
           .then(() => {
             return this.initiateConnection();
           })

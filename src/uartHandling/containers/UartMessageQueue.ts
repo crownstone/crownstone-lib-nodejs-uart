@@ -69,7 +69,10 @@ export class UartMessageQueue {
         this._activeWrite.rejector({code: 500, message:"Timeout"});
         this.cleanActiveWrite();
       }, WRITE_TIMEOUT);
+
+      // the success is handled by handling the ack in _handleRxType
       this.writeCallback(this._activeWrite.data).catch((err) => {
+        log.info("Error writing from Queue", err);
         if (this._activeWrite) {
           this._activeWrite.rejector(err);
         }

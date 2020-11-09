@@ -3,6 +3,7 @@ import { Util, SessionData } from "crownstone-core";
 
 export class UartEncryptionContainer {
 
+  enabled = false;
   key : Buffer = null;
   outgoingSessionData : SessionData = null;
   incomingSessionData : SessionData = null;
@@ -10,12 +11,18 @@ export class UartEncryptionContainer {
 
   constructor() {
     // create initial guesses for the session data;
+    this.reset();
+  }
+
+  reset() {
+    // create initial guesses for the session data;
+    this.enabled = false;
+    this.key = null;
     this.incomingSessionData = new SessionData();
     this.incomingSessionData.generate();
     this.outgoingSessionData = new SessionData();
     this.outgoingSessionData.generate();
   }
-
 
   setKey(key : string | Buffer) {
     if (typeof key === 'string') {

@@ -23,7 +23,7 @@ export class HelloPacket {
       let stepper = new DataStepper(data);
 
       this.sphereUID = stepper.getUInt8();
-      this.status = stepper.getUInt8();
+      this.status    = stepper.getUInt8();
     }
     else {
       this.valid = false
