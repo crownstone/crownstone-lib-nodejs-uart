@@ -1,4 +1,4 @@
-import { Util, SessionData } from "crownstone-core";
+import { Util } from "crownstone-core";
 import {UartEncryptionContainer} from "./UartEncryptionContainer";
 
 
@@ -6,13 +6,16 @@ export class UartTransferOverhead {
 
   deviceId: number
   encryption: UartEncryptionContainer
-
+  mode : UartDeviceMode = "CROWNSTONE"
 
   constructor(deviceId: number) {
     this.deviceId = deviceId;
     this.encryption =  new UartEncryptionContainer();
   }
 
+  setMode(mode: UartDeviceMode) {
+    this.mode = mode;
+  }
 
   setKey(key : string | Buffer) {
     if (typeof key === 'string') {
@@ -24,20 +27,15 @@ export class UartTransferOverhead {
   }
 
   refreshSessionData() {
-    this.encryption.outgoingSessionData.generate();
+    this.encryption.refreshSessionData();
   }
 
   reset() {
-    this.encryption.reset();
+    this.encryption.resetSessionData();
   }
 
   setIncomingSessionData(buffer: Buffer) {
-    try {
-      this.encryption.incomingSessionData.load(buffer)
-    }
-    catch(e) {
-      console.log("INVALID INCOMING SESSION DATA");
-    }
+    this.encryption.setIncomingSessionData(buffer);
   }
 
 }

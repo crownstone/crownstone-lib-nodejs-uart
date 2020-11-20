@@ -47,7 +47,7 @@ export class UartReadBuffer {
       if (this.active) {
         log.warn("MULTIPLE START TOKENS");
         eventBus.emit("UartNoise", "multiple start token")
-        // console.log("buf:", this.buffer)
+        // log.verbose("buf:", this.buffer)
         this.reset();
         return
       }

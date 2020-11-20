@@ -5,6 +5,7 @@ export const UartTxType = {
   HEARTBEAT:                        2,
   STATUS:                           3,
   CONTROL:                          10,
+  HUB_DATA_REPLY:                   11,
 
   ENABLE_ADVERTISEMENT:             50000,
   ENABLE_MESH:                      50001,
@@ -28,20 +29,26 @@ export const UartTxType = {
   INJECT_INTERNAL_EVENT:            60000,
 };
 
-
 export const UartRxType = {
   HELLO:                            0,
   SESSION_NONCE:                    1,
   HEARTBEAT:                        2,
   STATUS:                           3,
+  MAC_ADDRESS:                      4,
   RESULT_PACKET:                    10,
 
+  PARSING_FAILED:                   9900,
+  ERROR_REPLY:                      9901,
+  SESSION_NONCE_MISSING_REPLY:      9902,
+  DECRYPTION_FAILED:                9903,
+
   UART_MESSAGE:                     10000,
-  NO_SESSION_NONCE_AVAILABLE:       10001,
+  SESSION_NONCE_MISSING:            10001,
   OWN_SERVICE_DATA:                 10002,
   PRESENCE_CHANGE_PACKET:           10004,
   FACTORY_RESET:                    10005,
   BOOT:                             10006,
+  HUB_DATA:                         10007,
 
   MESH_SERVICE_DATA:                10102,
   EXTERNAL_STATE_PART_0:    	      10103,
@@ -50,7 +57,7 @@ export const UartRxType = {
   MESH_ACK_ALL_RESULT:              10106,
 
   EVENT_BUS:                        40000,
-  TIME:                             40103,
+  MESH_COMMAND_TIME:                40103,
   PROFILE_LOCATION:                 40110,
   BEHAVIOUR_SETTINGS:               40111,
   TRACKED_DEVICE_REGISTER:          40112,
@@ -61,7 +68,6 @@ export const UartRxType = {
   ADVERTISING_ENABLED:              50000,
   MESH_ENABLED:                     50001,
   CROWNSTONE_ID:                    50002,
-  MAC_ADDRESS:                      50003,
 
   ADC_CONFIG:                       50100,
   ADC_RESTART:                      50101,
@@ -77,3 +83,7 @@ export const UartRxType = {
   TEST_STRINGS:                     60001,
 };
 
+
+export const HubDataType = {
+  SETUP:   0
+}

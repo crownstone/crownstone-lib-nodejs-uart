@@ -1,27 +1,25 @@
-import { Util, SessionData } from "crownstone-core";
+import {EncryptionHandler, Util} from "crownstone-core";
 
 
 export class UartEncryptionContainer {
 
   enabled = false;
   key : Buffer = null;
-  outgoingSessionData : SessionData = null;
-  incomingSessionData : SessionData = null;
+  outgoingSessionData : Buffer = null
+  incomingSessionData : Buffer = null
 
 
   constructor() {
     // create initial guesses for the session data;
-    this.reset();
+    this.resetSessionData();
   }
 
-  reset() {
+  resetSessionData() {
     // create initial guesses for the session data;
-    this.enabled = false;
-    this.key = null;
-    this.incomingSessionData = new SessionData();
-    this.incomingSessionData.generate();
-    this.outgoingSessionData = new SessionData();
-    this.outgoingSessionData.generate();
+    this.incomingSessionData = Buffer.alloc(5)
+    EncryptionHandler.fillWithRandomNumbers(this.incomingSessionData);
+    this.outgoingSessionData = Buffer.alloc(5);
+    EncryptionHandler.fillWithRandomNumbers(this.incomingSessionData);
   }
 
   setKey(key : string | Buffer) {
@@ -34,12 +32,12 @@ export class UartEncryptionContainer {
   }
 
   refreshSessionData() {
-    this.outgoingSessionData.generate();
+    EncryptionHandler.fillWithRandomNumbers(this.incomingSessionData);
   }
 
   setIncomingSessionData(buffer: Buffer) {
     try {
-      this.incomingSessionData.load(buffer)
+      this.incomingSessionData = buffer;
     }
     catch(e) {
       console.log("INVALID INCOMING SESSION DATA");

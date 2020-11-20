@@ -3,7 +3,7 @@
  *
  */
 import {DataStepper} from "crownstone-core/dist/util/DataStepper";
-import {EncryptionHandler, SessionData} from "crownstone-core";
+import {EncryptionHandler } from "crownstone-core";
 import {Logger} from "../../Logger";
 const log = Logger(__filename);
 
@@ -17,7 +17,7 @@ export class UartWrapperPacketV2 {
   deviceId  : number;
   dataType  : number;
 
-  sessionData : SessionData | null = null;
+  sessionData : Buffer | null = null;
   key: Buffer | null = null;
 
   crc     : number;
@@ -25,7 +25,7 @@ export class UartWrapperPacketV2 {
 
   valid : boolean = false;
 
-  constructor(data : Buffer, sessionData: SessionData = null, key: Buffer = null) {
+  constructor(data : Buffer, sessionData: Buffer = null, key: Buffer = null) {
     this.sessionData = sessionData;
     this.key         = key;
     this.load(data);
@@ -52,12 +52,12 @@ export class UartWrapperPacketV2 {
           if (!this.sessionData) { throw "No SessionData Loaded"; }
           if (!this.key)         { throw "No Encryption Key Loaded"; }
 
-          let encryptedmessage = stepper.getBuffer(innerMessageSize);
-          let decryptedBytes = EncryptionHandler.decryptCTR(encryptedmessage, this.sessionData, this.key);
-          let decryptedDataWithPadding = EncryptionHandler.verifyAndExtractDecryption(decryptedBytes, this.sessionData);
-          let decryptedStepper = new DataStepper(decryptedDataWithPadding);
-          let payloadSize = decryptedStepper.getUInt16();
-          uartMessage = decryptedStepper.getBuffer(payloadSize);
+          let encryptedmessage         = stepper.getBuffer(innerMessageSize);
+          let decryptedBytes           = EncryptionHandler.decryptCTR(encryptedmessage, this.sessionData, this.key);
+          let decryptedDataWithPadding = EncryptionHandler.verifyAndExtractDecryption(decryptedBytes);
+          let decryptedStepper         = new DataStepper(decryptedDataWithPadding);
+          let payloadSize              = decryptedStepper.getUInt16();
+          uartMessage                  = decryptedStepper.getBuffer(payloadSize);
         }
         else {
           uartMessage = stepper.getBuffer(innerMessageSize);

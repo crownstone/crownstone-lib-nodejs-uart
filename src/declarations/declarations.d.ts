@@ -22,4 +22,4 @@ interface dimmerData {
 }
 
 
-
+type UartDeviceMode = "HUB" | "CROWNSTONE"

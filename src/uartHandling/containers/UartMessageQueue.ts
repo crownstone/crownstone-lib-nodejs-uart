@@ -1,6 +1,7 @@
 import {eventBus} from "../../singletons/EventBus";
 import Timeout = NodeJS.Timeout;
 import {Logger} from "../../Logger";
+import {topics} from "../../declarations/topics";
 
 const log = Logger(__filename);
 
@@ -26,7 +27,7 @@ export class UartMessageQueue {
 
   constructor(writeCallback) {
     this.writeCallback = writeCallback;
-    this.eventListeners.push(eventBus.on("RxTypeReceived", (rxType) => { this._handleRxType(rxType) }));
+    this.eventListeners.push(eventBus.on(topics.RxTypeReceived, (rxType) => { this._handleRxType(rxType) }));
   }
 
   cleanup() {

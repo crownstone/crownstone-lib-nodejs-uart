@@ -6,10 +6,23 @@ import {eventBus} from "../singletons/EventBus";
 import {Logger} from "../Logger";
 import {UartWrapperPacketV2} from "./uartPackets/UartWrapperPacketV2";
 import {UartWrapperV2} from "./uartPackets/UartWrapperV2";
-import {UartRxType, UartTxType} from "../declarations/enums";
+import {UartTxType} from "../declarations/enums";
 import {UartTransferOverhead} from "./containers/UartTransferOverhead";
 import {UartMessageQueue} from "./containers/UartMessageQueue";
+import {topics} from "../declarations/topics";
+import {HelloPacket} from "./contentPackets/rx/Hello";
+import {ControlStateSetPacket, StateType} from "crownstone-core";
+import {HelloTXPacket} from "./contentPackets/tx/HelloTx";
+import {getSessionNonceTx} from "./contentPackets/tx/SessionNonceTx";
+
 const log = Logger(__filename);
+
+const encryptedDataTypes = {
+  [UartTxType.HEARTBEAT]: true,
+  [UartTxType.STATUS]: true,
+  [UartTxType.CONTROL]: true,
+  [UartTxType.HUB_DATA_REPLY]: true,
+};
 
 export class UartLink {
   port    : SerialPort = null;
@@ -21,9 +34,10 @@ export class UartLink {
   resolver;
   rejecter;
   pingInterval;
+  refreshSessionNonceInterval;
 
   unsubscribeEvents : (() => void)[] = [];
-  unsubscribeHello = () => {};
+  unsubscribeHello  =  () => {};
   reconnectionCallback;
   heartBeatInterval = null;
 
@@ -40,25 +54,47 @@ export class UartLink {
     this.readBuffer = new UartReadBuffer(parseCallback, transferOverhead);
 
     // load new, updated session nonce data into the container.
-    this.unsubscribeEvents.push(
-      eventBus.on(
-        "SessionNonceReceived",
-        (data: Buffer) => { transferOverhead.setIncomingSessionData(data); }
-    ));
-    this.unsubscribeEvents.push(
-      eventBus.on(
-        "HelloReceived",
-        (data: {sphereId: number, status: any}) => {
+    this.unsubscribeEvents.push( eventBus.on( topics.SessionNonceReceived,(data: Buffer) => {
+      transferOverhead.setIncomingSessionData(data);
+    }));
+    this.unsubscribeEvents.push( eventBus.on( topics.SessionNonceMissing,() => {
+      this.refreshSessionData();
+    }));
+    this.unsubscribeEvents.push( eventBus.on( topics.HelloReceived,(data: HelloPacket) => {
           // check if the encryption is enabled.
-          if (data.status) {
+          if (data.encryptionRequired) {
             this.transferOverhead.encryption.enabled = true;
+            this.refreshSessionData();
+          }
+          if (this.transferOverhead.mode === "HUB" && data.hubMode !== true) {
+            this.setHubMode(true);
           }
         }
     ));
   }
 
+  async refreshSessionData(timeoutMinutes = 30) {
+    clearTimeout(this.refreshSessionNonceInterval);
+    this.refreshSessionNonceInterval = setTimeout(() => {
+      this.refreshSessionData(timeoutMinutes)
+    }, 0.8*timeoutMinutes*60*1000);
+
+    this.transferOverhead.refreshSessionData();
+    let sessionNoncePacket = getSessionNonceTx(timeoutMinutes, this.transferOverhead.encryption.outgoingSessionData);
+    await this.write(sessionNoncePacket);
+  }
+
+  setHubMode(enabled: boolean) {
+    // set state packet
+    let setStatePacket = new ControlStateSetPacket(StateType.HUB_MODE).loadUInt8(enabled ? 1 : 0).getPacket()
+
+    // which we wrap in an uart wrapper
+    let packet = new UartWrapperV2(UartTxType.CONTROL, setStatePacket);
+
+    this.write(packet);
+  }
+
   destroy() : Promise<void> {
-    clearInterval(this.heartBeatInterval);
     this.cleanup();
     return new Promise((resolve, reject) => {
       this.port.close(() => { resolve(); });
@@ -66,6 +102,7 @@ export class UartLink {
   }
 
   cleanup() {
+    clearTimeout(this.refreshSessionNonceInterval);
     clearInterval(this.heartBeatInterval);
     this.unsubscribeHello();
     this.unsubscribeEvents.forEach((unsub) => { unsub(); });
@@ -106,7 +143,7 @@ export class UartLink {
       this.rejecter();
     }}, 1000);
 
-    this.unsubscribeHello = eventBus.on("HelloReceived", () => {
+    this.unsubscribeHello = eventBus.on(topics.HelloReceived, () => {
       clearTimeout(closeTimeout);
       this.success = true;
       this.unsubscribeHello();
@@ -115,7 +152,10 @@ export class UartLink {
     });
 
     try {
-      await this.write(new UartWrapperV2(UartTxType.HELLO))
+      let helloTX = new HelloTXPacket();
+      helloTX.encryptionRequired = this.transferOverhead.encryption.enabled;
+
+      await this.write(helloTX.getWrapper())
     }
     catch (e) {
       log.warn("Hello failed.",e);
@@ -160,10 +200,10 @@ export class UartLink {
     if (
       this.transferOverhead.encryption.enabled      &&
       this.transferOverhead.encryption.key !== null &&
-      dataType !== UartRxType.HELLO
+      encryptedDataTypes[dataType]
     ) {
       // ENCRYPT
-      log.verbose("Encrypting packet...", uartMessage.getPacket())
+      log.verbose("Encrypting packet...", uartMessage.getPacket().toJSON())
       let encryptedPacket = uartMessage.getEncryptedPacket(
         this.transferOverhead.encryption.outgoingSessionData,
         this.transferOverhead.encryption.key
@@ -178,6 +218,7 @@ export class UartLink {
       this.queue.add(uartMessage.dataType, packet, resolve, reject);
     })
     .catch((err) => {
+      console.log("ERR", err)
       this.handleError(err);
       throw err;
     })

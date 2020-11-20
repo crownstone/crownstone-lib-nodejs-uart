@@ -8,6 +8,8 @@ import {Logger} from "../Logger";
 import {UartWrapperPacketV2} from "./uartPackets/UartWrapperPacketV2";
 import {MeshExternalStatePart0} from "./uartPackets/parser/MeshExternalStatePart0";
 import {MeshExternalStatePart1} from "./uartPackets/parser/MeshExternalStatePart1";
+import {HubDataParser} from "./uartPackets/parser/HubData";
+import {topics} from "../declarations/topics";
 const log = Logger(__filename, true);
 
 const MeshDataUniquenessChecker = {};
@@ -25,73 +27,39 @@ export class UartParser {
       return;
     }
 
-    eventBus.emit("RxTypeReceived", dataPacket.dataType);
-    log.debug("Handling packet:", dataPacket.dataType);
-
+    eventBus.emit(topics.RxTypeReceived, dataPacket.dataType);
+    if (dataPacket.dataType < 60000) {
+      log.debug("Handling packet:", dataPacket.dataType);
+    }
     if (dataType === UartRxType.HELLO) {
       let hello = new HelloPacket(dataPacket.payload);
       if (hello.valid) {
-        eventBus.emit("HelloReceived", {sphereId: hello.sphereUID, status: hello.status});
+        eventBus.emit(topics.HelloReceived, hello);
       }
       else {
         console.log("invalid hello packet", dataPacket.payload)
       }
     }
-    else if (dataType === UartRxType.HEARTBEAT) {
-      eventBus.emit("HeartBeat", null);
-    }
-    else if (dataType === UartRxType.STATUS) {
-      if (dataPacket.payload.length === 1) {
-        eventBus.emit("Status", {timeout: dataPacket.payload.readUInt8(0)});
-      }else {
-        console.log("invalid STATUS packet", dataPacket.payload)
-      }
-    }
     else if (dataType === UartRxType.SESSION_NONCE) {
       if (dataPacket.payload.length === 5) {
-        eventBus.emit("SessionNonceReceived", dataPacket.payload);
-      }else {
+        eventBus.emit(topics.SessionNonceReceived, dataPacket.payload);
+      }
+      else {
         console.log("invalid session nonce packet", dataPacket.payload)
       }
     }
-    else if (dataType == UartRxType.OWN_SERVICE_DATA) {
-      // console.log("Got Own service data")
-      let serviceData = new ServiceData(dataPacket.payload);
-      serviceData.parse();
-      if (serviceData.validData) {
-        eventBus.emit("SelfServiceData", serviceData.getJSON());
-      }
+    else if (dataType === UartRxType.HEARTBEAT) {
+      eventBus.emit(topics.HeartBeat, null);
     }
-    else if (dataType == UartRxType.RESULT_PACKET) {
-      let packet = new ResultPacket(dataPacket.payload);
-      if (packet.commandType === ControlType.UART_MESSAGE) {
-        log.verbose("resultPacket", packet);
+    else if (dataType === UartRxType.STATUS) {
+      if (dataPacket.payload.length === 1) {
+        eventBus.emit(topics.Status, {timeout: dataPacket.payload.readUInt8(0)});
       }
       else {
-        log.debug("resultPacket", packet);
-      }
-      eventBus.emit("resultPacket", packet);
-    }
-    else if (dataType == UartRxType.MESH_SERVICE_DATA) {
-      let serviceData = new ServiceData(dataPacket.payload, true);
-      serviceData.parse()
-      if (serviceData.validData) {
-        if (MeshDataUniquenessChecker[serviceData.crownstoneId] !== serviceData.uniqueIdentifier) {
-          MeshDataUniquenessChecker[serviceData.crownstoneId] = serviceData.uniqueIdentifier;
-          log.verbose("MeshServiceData", serviceData.getJSON())
-          eventBus.emit("MeshServiceData", serviceData.getJSON())
-        }
-      }
-      else {
-        console.log(new Date().toLocaleString(), "Invalid mesh data from:", serviceData.crownstoneId)
+        console.log("invalid STATUS packet", dataPacket.payload)
       }
     }
-    else if (dataType == UartRxType.CROWNSTONE_ID) {
-      console.log("Got Crownstone Id")
-      // id = Conversion.int8_to_uint8(dataPacket.payload)
-      // CrownstoneEventBus.emit(DevTopics.ownCrownstoneId, id)
-    }
-    else if (dataType == UartRxType.MAC_ADDRESS) {
+    else if (dataType === UartRxType.MAC_ADDRESS) {
       console.log("Got MAC address")
       // if (addr !== "") {
       //     // CrownstoneEventBus.emit(DevTopics.ownMacAddress, addr)
@@ -100,61 +68,141 @@ export class UartParser {
       //     // console.log("invalid address) {", dataPacket.payload)
       // }
     }
-    else if (dataType == UartRxType.POWER_LOG_CURRENT) {
-      console.log("Got MAC address")
-      // type is CurrentSamples
-      // parsedData = CurrentSamplesPacket(dataPacket.payload)
-      // CrownstoneEventBus.emit(DevTopics.newCurrentData, parsedData.getDict())
+    else if (dataType === UartRxType.RESULT_PACKET) {
+      let packet = new ResultPacket(dataPacket.payload);
+      if (packet.commandType === ControlType.UART_MESSAGE) {
+        log.verbose("resultPacket", packet);
+      }
+      else {
+        log.debug("resultPacket", packet);
+      }
+      eventBus.emit(topics.ResultPacket, packet);
     }
-    else if (dataType == UartRxType.POWER_LOG_VOLTAGE) {
-      // type is VoltageSamplesPacket
-      // parsedData = VoltageSamplesPacket(dataPacket.payload)
-      // CrownstoneEventBus.emit(DevTopics.newVoltageData, parsedData.getDict())
+    else if (dataType === UartRxType.PARSING_FAILED) {
+      console.log("PARSING IN FIRMWARE FAILED......")
     }
-    else if (dataType == UartRxType.POWER_LOG_FILTERED_CURRENT) {
-      // type is CurrentSamples
-      // parsedData = CurrentSamplesPacket(dataPacket.payload)
-      // CrownstoneEventBus.emit(DevTopics.newFilteredCurrentData, parsedData.getDict())
+    else if (dataType === UartRxType.ERROR_REPLY) {
+      console.log("ERROR REPLY......")
     }
-    else if (dataType == UartRxType.POWER_LOG_FILTERED_VOLTAGE) {
-      // type is VoltageSamplesPacket
-      // parsedData = VoltageSamplesPacket(dataPacket.payload)
-      // CrownstoneEventBus.emit(DevTopics.newFilteredVoltageData, parsedData.getDict())
+    else if (dataType === UartRxType.SESSION_NONCE_MISSING_REPLY) {
+      console.log("NO_SESSION_NONCE_AVAILABLE")
+      eventBus.emit(topics.SessionNonceMissing);
     }
-    else if (dataType == UartRxType.POWER_LOG_POWER) {
-      // type is PowerCalculationsPacket
-      // parsedData = PowerCalculationPacket(dataPacket.payload)
-      // CrownstoneEventBus.emit(DevTopics.newCalculatedPowerData, parsedData.getDict())
+    else if (dataType === UartRxType.DECRYPTION_FAILED) {
+      console.log("DECRYPTION FAILED......")
     }
-    else if (dataType == UartRxType.ADC_CONFIG) {
-      // type is PowerCalculationsPacket
-      // parsedData = AdcConfigPacket(dataPacket.payload)
-      // CrownstoneEventBus.emit(DevTopics.newAdcConfigPacket, parsedData.getDict())
+    else if (dataType === UartRxType.UART_MESSAGE) {
+      let string =  dataPacket.payload.toString();
+      log.verbose("UartMessage", string);
+      eventBus.emit(topics.UartMessage, {string: string, data: dataPacket.payload})
     }
-    else if (dataType == UartRxType.ADC_RESTART) {
-      // CrownstoneEventBus.emit(DevTopics.adcRestarted, null)
+    else if (dataType === UartRxType.SESSION_NONCE_MISSING) {
+      console.log("NO_SESSION_NONCE_AVAILABLE")
+      eventBus.emit(topics.SessionNonceMissing);
     }
-    else if (dataType == UartRxType.EXTERNAL_STATE_PART_0) {
+    else if (dataType === UartRxType.OWN_SERVICE_DATA) {
+      // console.log("Got Own service data")
+      let serviceData = new ServiceData(dataPacket.payload);
+      serviceData.parse();
+      if (serviceData.validData) {
+        eventBus.emit(topics.SelfServiceData, serviceData.getJSON());
+      }
+    }
+    else if (dataType === UartRxType.PRESENCE_CHANGE_PACKET) {
+      // This might have to be handled in the future.
+    }
+    else if (dataType === UartRxType.FACTORY_RESET) {
+      // This might have to be handled in the future.
+    }
+    else if (dataType === UartRxType.BOOT) {
+      // This might have to be handled in the future.
+      console.log("REBOOT")
+    }
+    else if (dataType === UartRxType.HUB_DATA) {
+      let hubData = new HubDataParser(dataPacket.payload);
+      if (hubData.valid) {
+        eventBus.emit(topics.HubDataReceived, hubData.result)
+      }
+      else {
+        console.log("INVALID HUB DATA", dataPacket)
+      }
+
+    }
+    else if (dataType === UartRxType.MESH_SERVICE_DATA) {
+      let serviceData = new ServiceData(dataPacket.payload, true);
+      serviceData.parse()
+      if (serviceData.validData) {
+        if (MeshDataUniquenessChecker[serviceData.crownstoneId] !== serviceData.uniqueIdentifier) {
+          MeshDataUniquenessChecker[serviceData.crownstoneId] = serviceData.uniqueIdentifier;
+          log.verbose("MeshServiceData", serviceData.getJSON())
+          eventBus.emit(topics.MeshServiceData, serviceData.getJSON())
+        }
+      }
+      else {
+        console.log(new Date().toLocaleString(), "Invalid mesh data from:", serviceData.crownstoneId)
+      }
+    }
+    else if (dataType === UartRxType.EXTERNAL_STATE_PART_0) {
       let serviceData = new MeshExternalStatePart0(dataPacket.payload);
       if (serviceData.valid) {
         if (MeshDataUniquenessChecker_part0[serviceData.crownstoneId] !== serviceData.uniqueIdentifier) {
           MeshDataUniquenessChecker_part0[serviceData.crownstoneId] = serviceData.uniqueIdentifier;
           log.silly("MeshServiceData_part0", serviceData.getJSON())
-          eventBus.emit("MeshServiceData_part0", serviceData.getJSON())
+          eventBus.emit(topics.MeshServiceData_part0, serviceData.getJSON())
         }
       }
     }
-    else if (dataType == UartRxType.EXTERNAL_STATE_PART_1) {
+    else if (dataType === UartRxType.EXTERNAL_STATE_PART_1) {
       let serviceData = new MeshExternalStatePart1(dataPacket.payload);
       if (serviceData.valid) {
         if (MeshDataUniquenessChecker_part1[serviceData.crownstoneId] !== serviceData.uniqueIdentifier) {
           MeshDataUniquenessChecker_part1[serviceData.crownstoneId] = serviceData.uniqueIdentifier;
           log.silly("MeshServiceData", serviceData.getJSON())
-          eventBus.emit("MeshServiceData_part1", serviceData.getJSON())
+          eventBus.emit(topics.MeshServiceData_part1, serviceData.getJSON())
         }
       }
     }
-    else if (dataType == UartRxType.ASCII_LOG) {
+    else if (dataType === UartRxType.MESH_RESULT) {
+    }
+    else if (dataType === UartRxType.MESH_ACK_ALL_RESULT) {
+    }
+    else if (dataType === UartRxType.EVENT_BUS) {
+    }
+    else if (dataType === UartRxType.MESH_COMMAND_TIME) {
+    }
+    else if (dataType === UartRxType.PROFILE_LOCATION) {
+    }
+    else if (dataType === UartRxType.BEHAVIOUR_SETTINGS) {
+    }
+    else if (dataType === UartRxType.TRACKED_DEVICE_REGISTER) {
+    }
+    else if (dataType === UartRxType.TRACKED_DEVICE_TOKEN) {
+    }
+    else if (dataType === UartRxType.SYNC_REQUEST) {
+    }
+    else if (dataType === UartRxType.TRACKED_DEVICE_HEARTBEAT) {
+    }
+    else if (dataType === UartRxType.ADVERTISING_ENABLED) {
+    }
+    else if (dataType === UartRxType.MESH_ENABLED) {
+    }
+    else if (dataType === UartRxType.CROWNSTONE_ID) {
+    }
+    else if (dataType === UartRxType.ADC_CONFIG) {
+    }
+    else if (dataType === UartRxType.ADC_RESTART) {
+    }
+    else if (dataType === UartRxType.POWER_LOG_CURRENT) {
+    }
+    else if (dataType === UartRxType.POWER_LOG_VOLTAGE) {
+    }
+    else if (dataType === UartRxType.POWER_LOG_FILTERED_CURRENT) {
+    }
+    else if (dataType === UartRxType.POWER_LOG_FILTERED_VOLTAGE) {
+    }
+    else if (dataType === UartRxType.POWER_LOG_POWER) {
+    }
+    else if (dataType === UartRxType.ASCII_LOG) {
       let stringResult = ""
       for (let i = 0; i< dataPacket.payload.length; i++) {
         let byte = dataPacket.payload[i];
@@ -164,32 +212,9 @@ export class UartParser {
       }
       log.debug("UartMessage", stringResult);
     }
-    else if (dataType == UartRxType.UART_MESSAGE) {
-      let string =  dataPacket.payload.toString();
-      log.verbose("UartMessage", string);
-      eventBus.emit("UartMessage", {string: string, data: dataPacket.payload})
-    }
-    else if (dataType == UartRxType.TEST_STRINGS) {
+    else if (dataType === UartRxType.TEST_STRINGS) {
       let string =  dataPacket.payload.toString();
       log.silly("TEST_STRINGS", string);
-    }
-    else if (dataType == UartRxType.PROFILE_LOCATION) {
-      // This might have to be handled in the future.
-    }
-    else if (dataType == UartRxType.BEHAVIOUR_SETTINGS) {
-      // This might have to be handled in the future.
-    }
-    else if (dataType == UartRxType.TRACKED_DEVICE_REGISTER) {
-      // This might have to be handled in the future.
-    }
-    else if (dataType == UartRxType.TRACKED_DEVICE_TOKEN) {
-      // This might have to be handled in the future.
-    }
-    else if (dataType == UartRxType.TRACKED_DEVICE_HEARTBEAT) {
-      // This might have to be handled in the future.
-    }
-    else if (dataType == UartRxType.PRESENCE_CHANGE_PACKET) {
-      // This might have to be handled in the future.
     }
     else {
       log.notice("Unknown OpCode", dataType)

@@ -31,13 +31,14 @@ export class UartManager {
     this.transferOverhead.setKey(key);
   }
 
+  setMode(mode: UartDeviceMode) {
+    this.transferOverhead.setMode(mode);
+  }
+
   async refreshSessionData() {
-    this.transferOverhead.refreshSessionData();
-    let sessionNoncePacket = new UartWrapperV2(
-      UartTxType.SESSION_NONCE,
-      this.transferOverhead.encryption.outgoingSessionData.sessionNonce
-    );
-    await this.write(sessionNoncePacket);
+    if (this.link.port && this.link.connected) {
+      await this.link.port.refreshSessionData();
+    }
   }
 
 
@@ -65,7 +66,6 @@ export class UartManager {
     let uartPacket = new UartWrapperV2(UartTxType.CONTROL, controlPacket)
 
     await this.write(uartPacket)
-    await Util.wait(100);
   }
 
 
@@ -94,7 +94,6 @@ export class UartManager {
     let uartPacket = new UartWrapperV2(UartTxType.CONTROL, registrationPacket);
 
     await this.write(uartPacket)
-    await Util.wait(100);
   }
 
 
@@ -105,7 +104,6 @@ export class UartManager {
     let setTimePacket = ControlPacketsGenerator.getSetTimePacket(customTimeInSeconds);
     let uartPacket = new UartWrapperV2(UartTxType.CONTROL, setTimePacket)
     await this.write(uartPacket)
-    await Util.wait(100);
   }
 
   async echo(string: string) {
@@ -113,12 +111,11 @@ export class UartManager {
     let uartPacket = new UartWrapperV2(UartTxType.CONTROL, echoCommandPacket)
 
     await this.write(uartPacket)
-    await Util.wait(100);
   }
 
 
   async write(uartMessage: UartWrapperV2) {
-    return this.link.write(uartMessage).catch();
+    return this.link.write(uartMessage).catch((e) => { console.error(e)});
   }
 
 }

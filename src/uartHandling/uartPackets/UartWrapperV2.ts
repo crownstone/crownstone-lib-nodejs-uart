@@ -1,12 +1,12 @@
 import {UartUtil} from "../../util/UartUtil";
-import {DataWriter, EncryptionHandler, SessionData} from "crownstone-core";
+import {DataWriter, EncryptionHandler } from "crownstone-core";
 
 const ESCAPE_TOKEN = 0x5c;
 const BIT_FLIP_MASK = 0x40;
 const START_TOKEN = 0x7e;
 
 const UART_TYPES = {
-	UART_MESSAGE: 0
+	UART_MESSAGE: 0,
 }
 
 const PROTOCOL_MAJOR = 1;
@@ -15,7 +15,7 @@ const PROTOCOL_MINOR = 0;
 const LENGTH_SIZE = 2;
 
 const WRAPPER_PREFIX_SIZE = 3;
-const ENCRYPTION_PREFIX_SIZE = 5;
+const ENCRYPTION_PREFIX_SIZE = 3;
 
 const DEVICE_ID_SIZE = 1;
 const DATA_TYPE_SIZE = 2;
@@ -30,9 +30,19 @@ export class UartWrapperV2 {
 	deviceId: number = 0;
 	payload: Buffer
 
-	constructor(dataType : number, payload : Buffer = Buffer.from([])) {
+	constructor(dataType : number, payload : Buffer | number | number[] = Buffer.from([])) {
+		if (typeof payload === 'number') {
+			this.payload = Buffer.from([payload]);
+		}
+		else if (Array.isArray(payload)) {
+			this.payload = Buffer.from(payload);
+		}
+		else {
+			this.payload = payload;
+		}
+
     this.dataType  = dataType
-    this.payload = payload;
+
   }
 
 	setDeviceId(deviceId : number) {
@@ -40,9 +50,9 @@ export class UartWrapperV2 {
 	}
 
 
-  getEncryptedPacket(sessionData: SessionData, key: Buffer) : Buffer {
+  getEncryptedPacket(sessionData: Buffer, key: Buffer) : Buffer {
 		let writer = new DataWriter(ENCRYPTION_PREFIX_SIZE);
-		this._addPrefixes(writer, UART_TYPES.UART_MESSAGE | 128);
+		this._addPrefixes(writer, UART_TYPES.UART_MESSAGE | 128); // the OR with 128 sets the first bit high, which means encrypted.
 		let uartMessage = this._getUartPacket()
 
 		let encryptedBuffer = EncryptionHandler.encryptCTR(uartMessage, sessionData, key, 0);
@@ -107,12 +117,10 @@ export class UartWrapperV2 {
 		crcBuffer.writeUInt16LE(baseCrc,0);
 		// append the CRC to the base packet to escape the entire thing
 		packet = Buffer.concat([packet,crcBuffer]);
-
 		// escape everything except the START_TOKEN
 		let escapedPayload = this._escapeCharacters(packet);
 		let size = Buffer.alloc(LENGTH_SIZE);
 		size.writeUInt16LE(packet.length, 0)
-
 
 		return Buffer.concat( [Buffer.from([START_TOKEN]), size, escapedPayload]);
 	}

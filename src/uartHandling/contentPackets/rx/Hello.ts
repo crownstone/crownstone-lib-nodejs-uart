@@ -2,11 +2,18 @@
  * Wrapper for all relevant data of the object
  *
  */
-import {DataStepper} from "crownstone-core";
+import {DataStepper, Util} from "crownstone-core";
 
 export class HelloPacket {
   sphereUID;
   status;
+
+  encryptionRequired : boolean = false;
+  crownstoneIsSetup  : boolean = false;
+  hubMode            : boolean = false;
+  hasError           : boolean = false;
+
+
 
   valid = false;
 
@@ -24,6 +31,14 @@ export class HelloPacket {
 
       this.sphereUID = stepper.getUInt8();
       this.status    = stepper.getUInt8();
+
+      // bitmask states
+      let bitmaskArray = Util.getBitMaskUInt8(this.status);
+
+      this.encryptionRequired   = bitmaskArray[0];
+      this.crownstoneIsSetup    = bitmaskArray[1];
+      this.hubMode              = bitmaskArray[2];
+      this.hasError             = bitmaskArray[3];
     }
     else {
       this.valid = false
