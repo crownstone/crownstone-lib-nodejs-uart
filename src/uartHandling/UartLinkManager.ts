@@ -6,7 +6,6 @@ import {Util} from "crownstone-core";
 import {Logger} from "../Logger";
 import {UartWrapperV2} from "./uartPackets/UartWrapperV2";
 import {UartTransferOverhead} from "./containers/UartTransferOverhead";
-import {UartTxType} from "../declarations/enums";
 const log = Logger(__filename);
 
 let UPDATE_PORTS;
@@ -144,6 +143,8 @@ export class UartLinkManager {
         })
     })
   }
+
+
 
 
   async write(uartMessage: UartWrapperV2) {

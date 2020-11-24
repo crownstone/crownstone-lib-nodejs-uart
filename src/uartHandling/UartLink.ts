@@ -61,16 +61,16 @@ export class UartLink {
       this.refreshSessionData();
     }));
     this.unsubscribeEvents.push( eventBus.on( topics.HelloReceived,(data: HelloPacket) => {
-          // check if the encryption is enabled.
-          if (data.encryptionRequired) {
-            this.transferOverhead.encryption.enabled = true;
-            this.refreshSessionData();
-          }
-          if (this.transferOverhead.mode === "HUB" && data.hubMode !== true) {
-            this.setHubMode(true);
-          }
-        }
-    ));
+      log.info("Hello packet received", data);
+      // check if the encryption is enabled.
+      if (data.encryptionRequired) {
+        this.transferOverhead.encryption.enabled = true;
+        this.refreshSessionData();
+      }
+      if (this.transferOverhead.mode === "HUB" && data.hubMode !== true) {
+        this.setHubMode(true);
+      }
+    }));
   }
 
   async refreshSessionData(timeoutMinutes = 30) {

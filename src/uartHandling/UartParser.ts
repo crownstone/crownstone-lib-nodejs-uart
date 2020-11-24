@@ -8,8 +8,8 @@ import {Logger} from "../Logger";
 import {UartWrapperPacketV2} from "./uartPackets/UartWrapperPacketV2";
 import {MeshExternalStatePart0} from "./uartPackets/parser/MeshExternalStatePart0";
 import {MeshExternalStatePart1} from "./uartPackets/parser/MeshExternalStatePart1";
-import {HubDataParser} from "./uartPackets/parser/HubData";
 import {topics} from "../declarations/topics";
+import {PresenceChangedPacket} from "./contentPackets/rx/PresenceChangedPacket";
 const log = Logger(__filename, true);
 
 const MeshDataUniquenessChecker = {};
@@ -60,13 +60,7 @@ export class UartParser {
       }
     }
     else if (dataType === UartRxType.MAC_ADDRESS) {
-      console.log("Got MAC address")
-      // if (addr !== "") {
-      //     // CrownstoneEventBus.emit(DevTopics.ownMacAddress, addr)
-      // }
-      // else {
-      //     // console.log("invalid address) {", dataPacket.payload)
-      // }
+      eventBus.emit(topics.incomingMacAddress, dataPacket.payload)
     }
     else if (dataType === UartRxType.RESULT_PACKET) {
       let packet = new ResultPacket(dataPacket.payload);
@@ -79,17 +73,17 @@ export class UartParser {
       eventBus.emit(topics.ResultPacket, packet);
     }
     else if (dataType === UartRxType.PARSING_FAILED) {
-      console.log("PARSING IN FIRMWARE FAILED......")
+      log.error("PARSING IN FIRMWARE FAILED......")
     }
     else if (dataType === UartRxType.ERROR_REPLY) {
       console.log("ERROR REPLY......")
     }
     else if (dataType === UartRxType.SESSION_NONCE_MISSING_REPLY) {
-      console.log("NO_SESSION_NONCE_AVAILABLE")
+      log.warn("NO_SESSION_NONCE_AVAILABLE")
       eventBus.emit(topics.SessionNonceMissing);
     }
     else if (dataType === UartRxType.DECRYPTION_FAILED) {
-      console.log("DECRYPTION FAILED......")
+      log.warn("DECRYPTION FAILED......")
     }
     else if (dataType === UartRxType.UART_MESSAGE) {
       let string =  dataPacket.payload.toString();
@@ -97,7 +91,7 @@ export class UartParser {
       eventBus.emit(topics.UartMessage, {string: string, data: dataPacket.payload})
     }
     else if (dataType === UartRxType.SESSION_NONCE_MISSING) {
-      console.log("NO_SESSION_NONCE_AVAILABLE")
+      log.warn("NO_SESSION_NONCE_AVAILABLE")
       eventBus.emit(topics.SessionNonceMissing);
     }
     else if (dataType === UartRxType.OWN_SERVICE_DATA) {
@@ -110,23 +104,23 @@ export class UartParser {
     }
     else if (dataType === UartRxType.PRESENCE_CHANGE_PACKET) {
       // This might have to be handled in the future.
+      let presenceChangePacket = new PresenceChangedPacket(dataPacket.payload);
+      if (presenceChangePacket.valid) {
+        eventBus.emit(topics.presenceChanged, presenceChangePacket.getJSON())
+      }
+      else {
+        log.error("Could nog parse the presence change packet", dataPacket.payload);
+      }
     }
     else if (dataType === UartRxType.FACTORY_RESET) {
       // This might have to be handled in the future.
+      eventBus.emit(topics.factoryReset)
     }
     else if (dataType === UartRxType.BOOT) {
       // This might have to be handled in the future.
-      console.log("REBOOT")
     }
     else if (dataType === UartRxType.HUB_DATA) {
-      let hubData = new HubDataParser(dataPacket.payload);
-      if (hubData.valid) {
-        eventBus.emit(topics.HubDataReceived, hubData.result)
-      }
-      else {
-        console.log("INVALID HUB DATA", dataPacket)
-      }
-
+      eventBus.emit(topics.HubDataReceived, dataPacket.payload);
     }
     else if (dataType === UartRxType.MESH_SERVICE_DATA) {
       let serviceData = new ServiceData(dataPacket.payload, true);

@@ -95,4 +95,9 @@ export class CrownstoneUart {
     return await this.uart.setTime(customTimeInSeconds);
   }
 
+  async getMacAddress() {
+    log.info("Get MacAddress");
+    return await this.uart.getMacAddress();
+  }
+
 }

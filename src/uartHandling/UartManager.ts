@@ -11,6 +11,8 @@ import {UartLinkManager} from "./UartLinkManager";
 import {UartWrapperV2} from "./uartPackets/UartWrapperV2";
 import {Logger} from "../Logger";
 import {UartTransferOverhead} from "./containers/UartTransferOverhead";
+import {eventBus} from "../singletons/EventBus";
+import {topics} from "../declarations/topics";
 
 const log = Logger(__filename);
 
@@ -110,6 +112,34 @@ export class UartManager {
     let echoCommandPacket = ControlPacketsGenerator.getUartMessagePacket(string)
     let uartPacket = new UartWrapperV2(UartTxType.CONTROL, echoCommandPacket)
 
+    await this.write(uartPacket)
+  }
+
+  async getMacAddress() : Promise<string> {
+    return new Promise(async (resolve, reject) => {
+      let uartPacket  = new UartWrapperV2(UartTxType.GET_MAC_ADDRESS)
+      let unsubscribe = eventBus.on(topics.incomingMacAddress, (data) => {
+        unsubscribe();
+        function padd(st) { if (st.length == 1) { return `0${st}`; } return st; }
+        let str = padd(data[0].toString(16));
+        for (let i = 1; i < data.length; i++) {
+          str += ':' + padd(data[i].toString(16))
+        }
+        resolve(str.toUpperCase());
+      })
+      try {
+        await this.write(uartPacket)
+      }
+      catch (e) {
+        unsubscribe();
+        throw e;
+      }
+    })
+  }
+
+
+  async hubDataReply(dataBuffer: Buffer) {
+    let uartPacket = new UartWrapperV2(UartTxType.HUB_DATA_REPLY, dataBuffer)
     await this.write(uartPacket)
   }
 
