@@ -118,7 +118,7 @@ export class UartManager {
   async getMacAddress() : Promise<string> {
     return new Promise(async (resolve, reject) => {
       let uartPacket  = new UartWrapperV2(UartTxType.GET_MAC_ADDRESS)
-      let unsubscribe = eventBus.on(topics.incomingMacAddress, (data) => {
+      let unsubscribe = eventBus.on(topics.IncomingMacAddress, (data) => {
         unsubscribe();
         function padd(st) { if (st.length == 1) { return `0${st}`; } return st; }
         let str = padd(data[0].toString(16));

@@ -2,7 +2,7 @@ export const topics = {
   RxTypeReceived:        'RxTypeReceived',
   HelloReceived:         'HelloReceived',
 
-  incomingMacAddress:    'incomingMacAddress',
+  IncomingMacAddress:    'IncomingMacAddress',
   SessionNonceReceived:  'SessionNonceReceived',
   SessionNonceMissing:   'SessionNonceMissing',
   HeartBeat:             'HeartBeat',
@@ -12,8 +12,8 @@ export const topics = {
   SelfServiceData:       'SelfServiceData',
   HubDataReceived:       'HubDataReceived',
 
-  factoryReset:          'factoryReset',
-  presenceChanged:       'presenceChanged',
+  FactoryReset:          'FactoryReset',
+  PresenceChanged:       'presenceChanged',
 
   MeshServiceData:       'MeshServiceData',
   MeshServiceData_part0: 'MeshServiceData_part0',

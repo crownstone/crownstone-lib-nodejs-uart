@@ -60,7 +60,7 @@ export class UartParser {
       }
     }
     else if (dataType === UartRxType.MAC_ADDRESS) {
-      eventBus.emit(topics.incomingMacAddress, dataPacket.payload)
+      eventBus.emit(topics.IncomingMacAddress, dataPacket.payload)
     }
     else if (dataType === UartRxType.RESULT_PACKET) {
       let packet = new ResultPacket(dataPacket.payload);
@@ -106,7 +106,7 @@ export class UartParser {
       // This might have to be handled in the future.
       let presenceChangePacket = new PresenceChangedPacket(dataPacket.payload);
       if (presenceChangePacket.valid) {
-        eventBus.emit(topics.presenceChanged, presenceChangePacket.getJSON())
+        eventBus.emit(topics.PresenceChanged, presenceChangePacket.getJSON())
       }
       else {
         log.error("Could nog parse the presence change packet", dataPacket.payload);
@@ -114,7 +114,7 @@ export class UartParser {
     }
     else if (dataType === UartRxType.FACTORY_RESET) {
       // This might have to be handled in the future.
-      eventBus.emit(topics.factoryReset)
+      eventBus.emit(topics.FactoryReset)
     }
     else if (dataType === UartRxType.BOOT) {
       // This might have to be handled in the future.
