@@ -67,7 +67,7 @@ export class UartMessageQueue {
     if (this._activeWrite === null) {
       this._activeWrite = this.queue[0];
       this._writeTimeout = setTimeout(() => {
-        this._activeWrite.rejector({code: 500, message:"Timeout"});
+        this._activeWrite.rejector({code: 500, message:"Timeout when sending type:" + this._activeWrite.dataType});
         this.cleanActiveWrite();
       }, WRITE_TIMEOUT);
 

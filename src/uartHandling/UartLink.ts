@@ -14,6 +14,7 @@ import {HelloPacket} from "./contentPackets/rx/Hello";
 import {ControlStateSetPacket, StateType} from "crownstone-core";
 import {HelloTXPacket} from "./contentPackets/tx/HelloTx";
 import {getSessionNonceTx} from "./contentPackets/tx/SessionNonceTx";
+import {HubStatusTx} from "./contentPackets/tx/HubStatusTx";
 
 const log = Logger(__filename);
 
@@ -60,12 +61,20 @@ export class UartLink {
     this.unsubscribeEvents.push( eventBus.on( topics.SessionNonceMissing,() => {
       this.refreshSessionData();
     }));
+    this.unsubscribeEvents.push( eventBus.on( topics.DecryptionFailed,() => {
+      this.transferOverhead.encryption.removeKey();
+      this.destroy();
+    }));
+
+
     this.unsubscribeEvents.push( eventBus.on( topics.HelloReceived,(data: HelloPacket) => {
       log.info("Hello packet received", data);
       // check if the encryption is enabled.
       if (data.encryptionRequired) {
-        this.transferOverhead.encryption.enabled = true;
         this.refreshSessionData();
+      }
+      else {
+        this.transferOverhead.encryption.enabled = false;
       }
       if (this.transferOverhead.mode === "HUB" && data.hubMode !== true) {
         this.setHubMode(true);
@@ -74,6 +83,11 @@ export class UartLink {
   }
 
   async refreshSessionData(timeoutMinutes = 30) {
+    if (this.transferOverhead.encryption.keyIsSet === false) {
+      log.info("Encryption is required, but no key is loaded. Please load an encryption key using .setKey(key : string | Buffer)");
+      eventBus.emit(topics.KeyRequested);
+    }
+    this.transferOverhead.encryption.enabled = true;
     clearTimeout(this.refreshSessionNonceInterval);
     this.refreshSessionNonceInterval = setTimeout(() => {
       this.refreshSessionData(timeoutMinutes)
@@ -153,7 +167,7 @@ export class UartLink {
 
     try {
       let helloTX = new HelloTXPacket();
-      helloTX.encryptionRequired = this.transferOverhead.encryption.enabled;
+      helloTX.putStatus(this.transferOverhead.status);
 
       await this.write(helloTX.getWrapper())
     }
@@ -173,6 +187,14 @@ export class UartLink {
     }
   }
 
+
+  async setStatus() : Promise<void> {
+    let statusPacket = new HubStatusTx();
+    statusPacket.putStatus(this.transferOverhead.status);
+    console.log("HERE",JSON.stringify(statusPacket.getWrapper().getPacket().toJSON()))
+    let packet = statusPacket.getWrapper();
+    await this.write(packet);
+  }
 
   handleError(err) {
     log.info("Connection error", err)

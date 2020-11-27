@@ -1,4 +1,3 @@
-import { Util } from "crownstone-core";
 import {UartEncryptionContainer} from "./UartEncryptionContainer";
 
 
@@ -7,9 +6,11 @@ export class UartTransferOverhead {
   deviceId: number
   encryption: UartEncryptionContainer
   mode : UartDeviceMode = "CROWNSTONE"
+  status: HubStatus;
 
   constructor(deviceId: number) {
     this.deviceId = deviceId;
+    this.status = new HubStatus()
     this.encryption =  new UartEncryptionContainer();
   }
 
@@ -17,13 +18,12 @@ export class UartTransferOverhead {
     this.mode = mode;
   }
 
+  setStatus(status: HubStatusData) {
+    this.status.load(status);
+  }
+
   setKey(key : string | Buffer) {
-    if (typeof key === 'string') {
-      this.encryption.key = Util.prepareKey(key);
-    }
-    else {
-      this.encryption.key = key;
-    }
+    this.encryption.setKey(key);
   }
 
   refreshSessionData() {
@@ -32,10 +32,25 @@ export class UartTransferOverhead {
 
   reset() {
     this.encryption.resetSessionData();
+    this.encryption.enabled = false;
   }
 
   setIncomingSessionData(buffer: Buffer) {
     this.encryption.setIncomingSessionData(buffer);
   }
 
+}
+
+export class HubStatus {
+  encryptionRequired : boolean = false;
+  clientHasBeenSetup : boolean = false;
+  clientHasInternet  : boolean = false;
+  clientHasError     : boolean = false;
+
+  load(data: HubStatusData) {
+    this.encryptionRequired = data.encryptionRequired ?? this.encryptionRequired;
+    this.clientHasBeenSetup = data.clientHasBeenSetup ?? this.clientHasBeenSetup;
+    this.clientHasInternet  = data.clientHasInternet  ?? this.clientHasInternet;
+    this.clientHasError     = data.clientHasError     ?? this.clientHasError;
+  }
 }

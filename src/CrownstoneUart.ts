@@ -26,6 +26,18 @@ export class CrownstoneUart {
     this.uart.echo(string)
   }
 
+  setKey(key : string | Buffer) {
+    this.uart.setKey(key);
+  }
+
+  setMode(mode: UartDeviceMode) : Promise<void> {
+    return this.uart.setMode(mode);
+  }
+
+  setHubStatus(hubStatus: HubStatusData) : Promise<void> {
+    return this.uart.setHubStatus(hubStatus)
+  }
+
   on(topic : string, callback : (data: any) => void) : () => void {
     return eventBus.on(topic,callback)
   }

@@ -1,3 +1,8 @@
+export const UartTxStatusType = {
+  NO_DATA        : 0,
+  CROWNSTONE_HUB : 1,
+}
+
 
 export const UartTxType = {
   HELLO:                            0,
@@ -35,6 +40,7 @@ export const UartRxType = {
   STATUS:                           3,
   MAC_ADDRESS:                      4,
   RESULT_PACKET:                    10,
+  HUB_DATA_REPLY_ACK:               11,
 
   PARSING_FAILED:                   9900,
   ERROR_REPLY:                      9901,

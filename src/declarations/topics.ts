@@ -1,6 +1,8 @@
 export const topics = {
   RxTypeReceived:        'RxTypeReceived',
   HelloReceived:         'HelloReceived',
+  KeyRequested:          'KeyRequested',
+  DecryptionFailed:      'DecryptionFailed',
 
   IncomingMacAddress:    'IncomingMacAddress',
   SessionNonceReceived:  'SessionNonceReceived',

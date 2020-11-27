@@ -8,10 +8,10 @@ export class HelloPacket {
   sphereUID;
   status;
 
-  encryptionRequired : boolean = false;
-  crownstoneIsSetup  : boolean = false;
-  hubMode            : boolean = false;
-  hasError           : boolean = false;
+  encryptionRequired      : boolean = false;
+  crownstoneHasBeenSetup  : boolean = false;
+  hubMode                 : boolean = false;
+  hasError                : boolean = false;
 
 
 
@@ -35,10 +35,10 @@ export class HelloPacket {
       // bitmask states
       let bitmaskArray = Util.getBitMaskUInt8(this.status);
 
-      this.encryptionRequired   = bitmaskArray[0];
-      this.crownstoneIsSetup    = bitmaskArray[1];
-      this.hubMode              = bitmaskArray[2];
-      this.hasError             = bitmaskArray[3];
+      this.encryptionRequired     = bitmaskArray[0];
+      this.crownstoneHasBeenSetup = bitmaskArray[1];
+      this.hubMode                = bitmaskArray[2];
+      this.hasError               = bitmaskArray[3];
     }
     else {
       this.valid = false

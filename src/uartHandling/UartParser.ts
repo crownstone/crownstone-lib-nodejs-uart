@@ -83,7 +83,8 @@ export class UartParser {
       eventBus.emit(topics.SessionNonceMissing);
     }
     else if (dataType === UartRxType.DECRYPTION_FAILED) {
-      log.warn("DECRYPTION FAILED......")
+      log.warn("DECRYPTION FAILED......");
+      eventBus.emit(topics.DecryptionFailed);
     }
     else if (dataType === UartRxType.UART_MESSAGE) {
       let string =  dataPacket.payload.toString();
@@ -121,6 +122,9 @@ export class UartParser {
     }
     else if (dataType === UartRxType.HUB_DATA) {
       eventBus.emit(topics.HubDataReceived, dataPacket.payload);
+    }
+    else if (dataType === UartRxType.HUB_DATA_REPLY_ACK) {
+
     }
     else if (dataType === UartRxType.MESH_SERVICE_DATA) {
       let serviceData = new ServiceData(dataPacket.payload, true);

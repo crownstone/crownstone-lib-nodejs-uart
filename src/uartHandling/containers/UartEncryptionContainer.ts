@@ -4,6 +4,7 @@ import {EncryptionHandler, Util} from "crownstone-core";
 export class UartEncryptionContainer {
 
   enabled = false;
+  keyIsSet = false;
   key : Buffer = null;
   outgoingSessionData : Buffer = null
   incomingSessionData : Buffer = null
@@ -22,7 +23,13 @@ export class UartEncryptionContainer {
     EncryptionHandler.fillWithRandomNumbers(this.incomingSessionData);
   }
 
+  removeKey() {
+    this.key = null;
+    this.keyIsSet = false;
+  }
+
   setKey(key : string | Buffer) {
+    this.keyIsSet = true;
     if (typeof key === 'string') {
       this.key = Util.prepareKey(key);
     }

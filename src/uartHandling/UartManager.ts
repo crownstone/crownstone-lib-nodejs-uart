@@ -33,8 +33,18 @@ export class UartManager {
     this.transferOverhead.setKey(key);
   }
 
-  setMode(mode: UartDeviceMode) {
+  async setMode(mode: UartDeviceMode) {
     this.transferOverhead.setMode(mode);
+    if (this.link.port && this.link.connected) {
+      await this.link.port.setHubMode(true);
+    }
+  }
+
+  async setHubStatus(hubStatus: HubStatusData) {
+    this.transferOverhead.setStatus(hubStatus);
+    if (this.link.port && this.link.connected) {
+      await this.link.port.setStatus();
+    }
   }
 
   async refreshSessionData() {
@@ -118,8 +128,10 @@ export class UartManager {
   async getMacAddress() : Promise<string> {
     return new Promise(async (resolve, reject) => {
       let uartPacket  = new UartWrapperV2(UartTxType.GET_MAC_ADDRESS)
-      let unsubscribe = eventBus.on(topics.IncomingMacAddress, (data) => {
+      let unsubscribe = eventBus.on(topics.IncomingMacAddress, (data: Buffer) => {
         unsubscribe();
+
+        data.reverse();
         function padd(st) { if (st.length == 1) { return `0${st}`; } return st; }
         let str = padd(data[0].toString(16));
         for (let i = 1; i < data.length; i++) {

@@ -23,3 +23,10 @@ interface dimmerData {
 
 
 type UartDeviceMode = "HUB" | "CROWNSTONE"
+
+interface HubStatusData {
+  encryptionRequired? : boolean,
+  clientHasBeenSetup? : boolean,
+  clientHasInternet? : boolean,
+  clientHasError?    : boolean,
+}
