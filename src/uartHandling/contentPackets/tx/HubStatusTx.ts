@@ -33,6 +33,7 @@ export class HubStatusTx {
     let payload = [];
     payload.push(UartTxStatusType.NO_DATA);
     payload.push(this.getStatusByte());
+    payload = payload.concat([0,0,0,0,0,0,0,0,0])
     return new UartWrapperV2(UartTxType.STATUS, payload)
   }
 }

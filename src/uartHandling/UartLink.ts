@@ -191,7 +191,6 @@ export class UartLink {
   async setStatus() : Promise<void> {
     let statusPacket = new HubStatusTx();
     statusPacket.putStatus(this.transferOverhead.status);
-    console.log("HERE",JSON.stringify(statusPacket.getWrapper().getPacket().toJSON()))
     let packet = statusPacket.getWrapper();
     await this.write(packet);
   }
