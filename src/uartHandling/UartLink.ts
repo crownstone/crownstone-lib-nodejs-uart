@@ -3,7 +3,7 @@ import {UartReadBuffer} from "./UartReadBuffer";
 import {UartParser} from "./UartParser";
 import {eventBus} from "../singletons/EventBus";
 
-import {Logger} from "../Logger";
+import {Logger, LogThrottle} from "../Logger";
 import {UartWrapperPacketV2} from "./uartPackets/UartWrapperPacketV2";
 import {UartWrapperV2} from "./uartPackets/UartWrapperV2";
 import {UartTxType} from "../declarations/enums";
@@ -120,6 +120,7 @@ export class UartLink {
     clearInterval(this.heartBeatInterval);
     this.unsubscribeHello();
     this.unsubscribeEvents.forEach((unsub) => { unsub(); });
+    LogThrottle.reset();
 
     if (this.port)   { this.port.removeAllListeners();   }
     if (this.parser) { this.parser.removeAllListeners(); }

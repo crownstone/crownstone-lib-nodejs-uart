@@ -118,7 +118,11 @@ export class UartReadBuffer {
       this.transferOverhead.encryption.incomingSessionData,
       this.transferOverhead.encryption.key
     );
-    this.callback(packet);
+
+    if (packet.valid === true) {
+      this.callback(packet);
+    }
+
     this.reset()
   }
 

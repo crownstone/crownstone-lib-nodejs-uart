@@ -3,8 +3,9 @@
  *
  */
 import {DataStepper} from "crownstone-core/dist/util/DataStepper";
-import {EncryptionHandler } from "crownstone-core";
-import {Logger} from "../../Logger";
+import {CrownstoneError, EncryptionHandler} from "crownstone-core";
+import {Logger, LogThrottle} from "../../Logger";
+import {UartErrorType} from "../../declarations/enums";
 const log = Logger(__filename);
 
 export class UartWrapperPacketV2 {
@@ -42,15 +43,19 @@ export class UartWrapperPacketV2 {
       this.messageType   = stepper.getUInt8();
 
       // the MSB bit of the message type means it this message is encrypted
-      this.encrypted = (this.messageType & 128) === 128;
-      this.messageType = this.messageType & 127; // this will remove the encrypted flag and keep the actual type number
+      this.encrypted   = (this.messageType & 128) === 128;
+      this.messageType =  this.messageType & 127; // this will remove the encrypted flag and keep the actual type number
 
       let innerMessageSize = this.messageSize - 3 - 2; // 3 = protocol major, minor, type, 2 = crc
       let uartMessage = null;
       if (this.messageSize > 0) {
         if (this.encrypted) {
-          if (!this.sessionData) { throw "No SessionData Loaded"; }
-          if (!this.key)         { throw "No Encryption Key Loaded"; }
+          if (!this.sessionData) {
+            throw new CrownstoneError(UartErrorType.ENCRYPTION_FAILED_SESSION_DATA, "No SessionData Loaded");
+          }
+          if (!this.key)         {
+            throw new CrownstoneError(UartErrorType.ENCRYPTION_FAILED_MISSING_KEY, "No Encryption Key Loaded");
+          }
 
           let encryptedmessage         = stepper.getBuffer(innerMessageSize);
           let decryptedBytes           = EncryptionHandler.decryptCTR(encryptedmessage, this.sessionData, this.key);
@@ -58,6 +63,7 @@ export class UartWrapperPacketV2 {
           let decryptedStepper         = new DataStepper(decryptedDataWithPadding);
           let payloadSize              = decryptedStepper.getUInt16();
           uartMessage                  = decryptedStepper.getBuffer(payloadSize);
+          LogThrottle.clearGroup("encryption");
         }
         else {
           uartMessage = stepper.getBuffer(innerMessageSize);
@@ -68,10 +74,17 @@ export class UartWrapperPacketV2 {
         this.deviceId = uartMessageStepper.getUInt8();
         this.dataType = uartMessageStepper.getUInt16();
         this.payload  = uartMessageStepper.getRemainingBuffer();
+
       }
     }
     catch (err) {
-      log.warn("Something went wrong during parsing UartWrapperPacketV2", err);
+      if (err && err.type) {
+        if (LogThrottle.check(err.type, 'encryption')) {
+          log.warn("Something went wrong during parsing UartWrapperPacketV2", err);
+        } else {
+          log.debug("THROTTLED: Something went wrong during parsing UartWrapperPacketV2", err);
+        }
+      }
       this.valid = false;
     }
   }

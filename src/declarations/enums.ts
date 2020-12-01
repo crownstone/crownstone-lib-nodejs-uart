@@ -89,3 +89,7 @@ export const UartRxType = {
 };
 
 
+export const UartErrorType = {
+  ENCRYPTION_FAILED_MISSING_KEY:        "ENCRYPTION_FAILED_MISSING_KEY",
+  ENCRYPTION_FAILED_SESSION_DATA:       "ENCRYPTION_FAILED_SESSION_DATA",
+};
