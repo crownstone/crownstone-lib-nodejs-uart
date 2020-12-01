@@ -24,8 +24,9 @@ export class UartEncryptionContainer {
   }
 
   removeKey() {
-    this.key = null;
+    this.key      = null;
     this.keyIsSet = false;
+    this.enabled  = false;
   }
 
   setKey(key : string | Buffer) {

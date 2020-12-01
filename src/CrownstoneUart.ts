@@ -29,6 +29,9 @@ export class CrownstoneUart {
   setKey(key : string | Buffer) {
     this.uart.setKey(key);
   }
+  removeKey() {
+    this.uart.removeKey();
+  }
 
   setMode(mode: UartDeviceMode) : Promise<void> {
     return this.uart.setMode(mode);

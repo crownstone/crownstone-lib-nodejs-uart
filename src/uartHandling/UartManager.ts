@@ -33,6 +33,10 @@ export class UartManager {
     this.transferOverhead.setKey(key);
   }
 
+  removeKey() {
+    this.transferOverhead.removeKey();
+  }
+
   async setMode(mode: UartDeviceMode) {
     this.transferOverhead.setMode(mode);
     if (this.link.port && this.link.connected) {

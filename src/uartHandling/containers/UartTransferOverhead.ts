@@ -26,6 +26,10 @@ export class UartTransferOverhead {
     this.encryption.setKey(key);
   }
 
+  removeKey() {
+    this.encryption.removeKey();
+  }
+
   refreshSessionData() {
     this.encryption.refreshSessionData();
   }
