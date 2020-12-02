@@ -1,58 +1,64 @@
 import {UartManager} from "./uartHandling/UartManager";
 import {eventBus} from "./singletons/EventBus";
 import {Logger} from './Logger'
+import {ControlHandler} from "./modules/ControlHandler";
+import {EncryptionHandler} from "./modules/EncryptionHandler";
+import {HubHandler} from "./modules/HubHandler";
+import {ConfigHandler} from "./modules/ConfigHandler";
 const log = Logger(__filename);
 
 export class CrownstoneUart {
+
+  control    : ControlHandler
+  encryption : EncryptionHandler
+  hub        : HubHandler
+  config     : ConfigHandler
+
+
   uart : UartManager
   log = log;
 
   constructor() {
-    this.uart = new UartManager();
+    this.uart       = new UartManager();
+    this.control    = new ControlHandler(this.uart);
+    this.encryption = new EncryptionHandler(this.uart);
+    this.hub        = new HubHandler(this.uart);
+    this.config     = new ConfigHandler(this.uart);
   }
+
 
   async start(forcedPort = null) : Promise<void> {
     log.info("Starting Link.")
     return this.uart.link.start(forcedPort);
   }
 
+
   async close() : Promise<void> {
     log.info("Closing CrownstoneUART.");
     return this.uart.link.close();
   }
+
 
   uartEcho(string : string) {
     log.info("Sending uart echo", string);
     this.uart.echo(string)
   }
 
-  setKey(key : string | Buffer) {
-    this.uart.setKey(key);
-  }
-  removeKey() {
-    this.uart.removeKey();
-  }
-
-  setMode(mode: UartDeviceMode) : Promise<void> {
-    return this.uart.setMode(mode);
-  }
-
-  setHubStatus(hubStatus: HubStatusData) : Promise<void> {
-    return this.uart.setHubStatus(hubStatus)
-  }
 
   on(topic : string, callback : (data: any) => void) : () => void {
     return eventBus.on(topic,callback)
   }
 
+
   async turnOnCrownstone(stoneId: number) : Promise<void> {
     log.info("turn on Crownstone", stoneId);
-    return this.uart.switchCrownstones([{ type:"TURN_ON", stoneId }]);
+    return this.control.switchCrownstones([{ type:"TURN_ON", stoneId }]);
   }
+
 
   async turnOffCrownstone(stoneId: number) : Promise<void> {
     log.info("turn off Crownstone", stoneId);
-    return this.uart.switchCrownstones([{ type:"TURN_OFF", stoneId }]);
+    return this.control.switchCrownstones([{ type:"TURN_OFF", stoneId }]);
   }
 
   /**
@@ -61,13 +67,15 @@ export class CrownstoneUart {
    */
   async dimCrownstone(stoneId: number, percentage: number) : Promise<void> {
     log.info("dimCrownstone", stoneId, percentage);
-    return this.uart.switchCrownstones([{ type:"PERCENTAGE", stoneId, percentage: percentage }]);
+    return this.control.switchCrownstones([{ type:"PERCENTAGE", stoneId, percentage: percentage }]);
   }
+
 
   async switchCrownstones(switchData : SwitchData[]) : Promise<void> {
     log.info("switch Crownstones", switchData);
-    return this.uart.switchCrownstones(switchData);
+    return this.control.switchCrownstones(switchData);
   }
+
 
   async switchCrownstone(stoneUID: number, percentage: number) : Promise<void> {
     return this.switchCrownstones([{
@@ -76,43 +84,4 @@ export class CrownstoneUart {
       percentage: percentage // 0 ... 100
     }]);
   }
-
-
-  async registerTrackedDevice(
-    trackingNumber:number,
-    locationUID:number,
-    profileId:number,
-    rssiOffset:number,
-    ignoreForPresence:boolean,
-    tapToToggleEnabled:boolean,
-    deviceToken:number,
-    ttlMinutes:number
-  ) {
-    log.info("registerTrackedDevice", arguments);
-    return this.uart.registerTrackedDevice(
-      trackingNumber,
-      locationUID,
-      profileId,
-      rssiOffset,
-      ignoreForPresence,
-      tapToToggleEnabled,
-      deviceToken,
-      ttlMinutes,
-    )
-  }
-
-  async delay(ms: number = 200) : Promise<void> {
-    return new Promise((resolve, reject) => { setTimeout(() => { resolve() }, ms); });
-  }
-
-  async setTime(customTimeInSeconds?: number) {
-    log.info("setTime", customTimeInSeconds);
-    return await this.uart.setTime(customTimeInSeconds);
-  }
-
-  async getMacAddress() {
-    log.info("Get MacAddress");
-    return await this.uart.getMacAddress();
-  }
-
 }
