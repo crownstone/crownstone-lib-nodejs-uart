@@ -20,7 +20,7 @@ export class HubHandler {
   }
 
 
-  async setHubStatus(hubStatus: HubStatusData) : Promise<void> {
+  async setStatus(hubStatus: HubStatusData) : Promise<void> {
     this.uartRef.transferOverhead.setStatus(hubStatus);
     if (this.uartRef.link.port && this.uartRef.link.connected) {
       await this.uartRef.link.port.setStatus();
@@ -28,7 +28,7 @@ export class HubHandler {
   }
 
 
-  async hubDataReply(dataBuffer: Buffer) {
+  async dataReply(dataBuffer: Buffer) {
     let uartPacket = new UartWrapperV2(UartTxType.HUB_DATA_REPLY, dataBuffer)
     await this.uartRef.write(uartPacket)
   }
