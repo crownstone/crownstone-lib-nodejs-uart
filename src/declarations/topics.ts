@@ -20,6 +20,8 @@ export const topics = {
   MeshServiceData:       'MeshServiceData',
   MeshServiceData_part0: 'MeshServiceData_part0',
   MeshServiceData_part1: 'MeshServiceData_part1',
+
+  ConnectionEstablished: 'ConnectionEstablished',
 }
 
 export const devTopics = {

@@ -29,6 +29,8 @@ export class UartWrapperV2 {
 	dataType: number
 	deviceId: number = 0;
 	payload: Buffer
+	counterOverride: number = null;
+	counter: number = 0;
 
 	constructor(dataType : number, payload : Buffer | number | number[] = Buffer.from([])) {
 		if (typeof payload === 'number') {
@@ -101,9 +103,7 @@ export class UartWrapperV2 {
 
   _getUartPacket() : Buffer {
 		let writer = new DataWriter(DEVICE_ID_SIZE + DATA_TYPE_SIZE );
-		writer.putUInt8(this.deviceId);
 		writer.putUInt16(this.dataType);
-
 		writer.putBuffer(this.payload);
 
 		return writer.getBuffer();

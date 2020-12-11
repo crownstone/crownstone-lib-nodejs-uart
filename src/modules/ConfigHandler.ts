@@ -13,8 +13,7 @@ export class ConfigHandler {
     this.uartRef = uart;
   }
 
-
-  async getMacAddress() {
+  async getMacAddress() : Promise<string> {
     log.info("Get MacAddress");
     return new Promise(async (resolve, reject) => {
       let uartPacket  = new UartWrapperV2(UartTxType.GET_MAC_ADDRESS)

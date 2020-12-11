@@ -171,6 +171,7 @@ export class UartLink {
       helloTX.putStatus(this.transferOverhead.status);
 
       await this.write(helloTX.getWrapper())
+      eventBus.emit(topics.ConnectionEstablished);
     }
     catch (e) {
       log.warn("Hello failed.",e);
