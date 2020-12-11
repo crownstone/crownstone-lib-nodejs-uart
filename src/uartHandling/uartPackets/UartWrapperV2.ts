@@ -17,7 +17,6 @@ const LENGTH_SIZE = 2;
 const WRAPPER_PREFIX_SIZE = 3;
 const ENCRYPTION_PREFIX_SIZE = 3;
 
-const DEVICE_ID_SIZE = 1;
 const DATA_TYPE_SIZE = 2;
 
 /**
@@ -102,7 +101,7 @@ export class UartWrapperV2 {
 
 
   _getUartPacket() : Buffer {
-		let writer = new DataWriter(DEVICE_ID_SIZE + DATA_TYPE_SIZE );
+		let writer = new DataWriter(DATA_TYPE_SIZE);
 		writer.putUInt16(this.dataType);
 		writer.putBuffer(this.payload);
 

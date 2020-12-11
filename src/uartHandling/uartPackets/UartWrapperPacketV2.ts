@@ -15,7 +15,6 @@ export class UartWrapperPacketV2 {
   messageSize   : number;
 
   encrypted : boolean;
-  deviceId  : number;
   dataType  : number;
 
   sessionData : Buffer | null = null;
@@ -71,7 +70,6 @@ export class UartWrapperPacketV2 {
         this.crc = stepper.getUInt16();
 
         let uartMessageStepper = new DataStepper(uartMessage);
-        this.deviceId = uartMessageStepper.getUInt8();
         this.dataType = uartMessageStepper.getUInt16();
         this.payload  = uartMessageStepper.getRemainingBuffer();
 
