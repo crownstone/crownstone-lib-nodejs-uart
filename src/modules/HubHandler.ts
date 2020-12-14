@@ -28,7 +28,12 @@ export class HubHandler {
   }
 
 
-  async dataReply(dataBuffer: Buffer) {
+  /**
+   * ResultValue is a resultValue from crownstone-core/src/protocol/CrownstoneTypes.ts
+   * @param dataBuffer
+   * @param resultValue
+   */
+  async dataReply(dataBuffer: Buffer, resultValue: number) {
     let uartPacket = new UartWrapperV2(UartTxType.HUB_DATA_REPLY, dataBuffer)
     await this.uartRef.write(uartPacket)
   }
