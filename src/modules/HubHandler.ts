@@ -2,6 +2,7 @@ import {UartManager} from "../uartHandling/UartManager";
 import {Logger} from "../Logger";
 import {UartWrapperV2} from "../uartHandling/uartPackets/UartWrapperV2";
 import {UartTxType} from "../declarations/enums";
+import {DataWriter} from "crownstone-core";
 const log = Logger(__filename);
 
 export class HubHandler {
@@ -34,7 +35,10 @@ export class HubHandler {
    * @param resultValue
    */
   async dataReply(dataBuffer: Buffer, resultValue: number) {
-    let uartPacket = new UartWrapperV2(UartTxType.HUB_DATA_REPLY, dataBuffer)
+    let writer = new DataWriter(2);
+    writer.putUInt16(resultValue);
+    writer.putBuffer(dataBuffer);
+    let uartPacket = new UartWrapperV2(UartTxType.HUB_DATA_REPLY, writer.getBuffer())
     await this.uartRef.write(uartPacket)
   }
 
