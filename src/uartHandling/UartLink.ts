@@ -221,6 +221,7 @@ export class UartLink {
     let dataType = uartMessage.dataType
     let packet;
     if (
+      uartMessage.encryptionAllowed &&
       this.transferOverhead.encryption.enabled      &&
       this.transferOverhead.encryption.key !== null &&
       encryptedDataTypes[dataType]

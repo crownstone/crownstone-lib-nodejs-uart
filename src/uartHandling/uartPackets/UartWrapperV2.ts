@@ -28,6 +28,9 @@ export class UartWrapperV2 {
 	dataType: number
 	deviceId: number = 0;
 	payload: Buffer
+
+	encryptionAllowed: boolean;
+
 	counterOverride: number = null;
 	counter: number = 0;
 

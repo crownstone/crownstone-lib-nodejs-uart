@@ -121,7 +121,7 @@ export class UartParser {
       // This might have to be handled in the future.
     }
     else if (dataType === UartRxType.HUB_DATA) {
-      eventBus.emit(topics.HubDataReceived, dataPacket.payload);
+      eventBus.emit(topics.HubDataReceived, {payload: dataPacket.payload, wasEncrypted: dataPacket.encrypted} );
     }
     else if (dataType === UartRxType.HUB_DATA_REPLY_ACK) {
 

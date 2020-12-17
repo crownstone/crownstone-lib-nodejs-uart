@@ -34,11 +34,12 @@ export class HubHandler {
    * @param dataBuffer
    * @param resultValue
    */
-  async dataReply(dataBuffer: Buffer, resultValue: number) {
+  async dataReply(dataBuffer: Buffer, resultValue: number, encryptionAllowed: true) {
     let writer = new DataWriter(2);
     writer.putUInt16(resultValue);
     writer.putBuffer(dataBuffer);
     let uartPacket = new UartWrapperV2(UartTxType.HUB_DATA_REPLY, writer.getBuffer())
+    uartPacket.encryptionAllowed = encryptionAllowed;
     await this.uartRef.write(uartPacket)
   }
 
