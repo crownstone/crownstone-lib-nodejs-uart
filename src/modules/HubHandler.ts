@@ -34,7 +34,7 @@ export class HubHandler {
    * @param dataBuffer
    * @param resultValue
    */
-  async dataReply(dataBuffer: Buffer, resultValue: number, encryptionAllowed: true) {
+  async dataReply(dataBuffer: Buffer, resultValue: number, encryptionAllowed = true) {
     let writer = new DataWriter(2);
     writer.putUInt16(resultValue);
     writer.putBuffer(dataBuffer);
