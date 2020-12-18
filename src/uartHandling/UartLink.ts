@@ -20,7 +20,7 @@ const log = Logger(__filename);
 
 const encryptedDataTypes = {
   [UartTxType.HEARTBEAT]: true,
-  [UartTxType.STATUS]: true,
+  // [UartTxType.STATUS]: true,
   [UartTxType.CONTROL]: true,
   [UartTxType.HUB_DATA_REPLY]: true,
 };
@@ -61,24 +61,20 @@ export class UartLink {
     this.unsubscribeEvents.push( eventBus.on( topics.SessionNonceMissing,() => {
       this.refreshSessionData();
     }));
-    this.unsubscribeEvents.push( eventBus.on( topics.DecryptionFailed,() => {
-      this.transferOverhead.encryption.removeKey();
-      this.destroy();
-    }));
 
-
-    this.unsubscribeEvents.push( eventBus.on( topics.HelloReceived,(data: HelloPacket) => {
+    this.unsubscribeEvents.push( eventBus.on( topics.HelloReceived,async (data: HelloPacket) => {
       log.info("Hello packet received", data);
       // check if the encryption is enabled.
       if (data.encryptionRequired) {
-        this.refreshSessionData();
+        await this.refreshSessionData();
       }
       else {
         this.transferOverhead.encryption.enabled = false;
       }
-      if (this.transferOverhead.mode === "HUB" && data.hubMode !== true) {
-        this.setHubMode(true);
-      }
+      // if (this.transferOverhead.mode === "HUB" && data.hubMode !== true) {
+      // }
+      await this.setStatus();
+      await this.setHubMode();
     }));
   }
 
@@ -98,14 +94,14 @@ export class UartLink {
     await this.write(sessionNoncePacket);
   }
 
-  setHubMode(enabled: boolean) {
+  async setHubMode() {
     // set state packet
-    let setStatePacket = new ControlStateSetPacket(StateType.HUB_MODE).loadUInt8(enabled ? 1 : 0).getPacket()
+    let setStatePacket = new ControlStateSetPacket(StateType.HUB_MODE).loadUInt8(this.transferOverhead.mode === "HUB" ? 1 : 0).getPacket()
 
     // which we wrap in an uart wrapper
     let packet = new UartWrapperV2(UartTxType.CONTROL, setStatePacket);
 
-    this.write(packet);
+    await this.write(packet);
   }
 
   destroy() : Promise<void> {
@@ -173,8 +169,8 @@ export class UartLink {
       await this.write(helloTX.getWrapper())
       eventBus.emit(topics.ConnectionEstablished);
     }
-    catch (e) {
-      log.warn("Hello failed.",e);
+    catch (err) {
+      log.warn("Hello failed.", err);
     }
   }
 
@@ -203,14 +199,23 @@ export class UartLink {
   }
 
 
-  async heartBeat() {
+  async heartBeat(allowEncryption = true) {
     try {
       let timeout = Buffer.alloc(2);
       timeout.writeUInt16LE(4, 0);
-      await this.write(new UartWrapperV2(UartTxType.HEARTBEAT, timeout));
+      let packet = new UartWrapperV2(UartTxType.HEARTBEAT, timeout);
+      packet.encryptionAllowed = allowEncryption;
+      await this.write(packet);
     }
-    catch (e) {
-      log.warn("Heartbeat failed.",e);
+    catch (err) {
+      if (allowEncryption && this.transferOverhead.encryption.enabled && err?.code === "WRITE_ENCRYPTION_REJECTED") {
+        log.notice("Encrypted Heartbeat failed. Attempting Heartbeat without encryption...");
+        await this.heartBeat(false);
+        log.notice("Success.");
+      }
+      else {
+        log.warn("Heartbeat failed.", err);
+      }
     }
   }
 
@@ -242,8 +247,9 @@ export class UartLink {
       this.queue.add(uartMessage.dataType, packet, resolve, reject);
     })
     .catch((err) => {
-      console.log("ERR", err)
-      this.handleError(err);
+      if (err?.code !== "WRITE_ENCRYPTION_REJECTED" && err?.code !== 'MESSAGE_REJECTED') {
+        this.handleError(err);
+      }
       throw err;
     })
   }
@@ -254,7 +260,6 @@ export class UartLink {
       log.verbose("Writing packet")
       this.port.write(data, (err) => {
         if (err) {
-          this.handleError(err);
           reject(err);
         }
         else {

@@ -2,6 +2,7 @@ import {eventBus} from "../../singletons/EventBus";
 import Timeout = NodeJS.Timeout;
 import {Logger} from "../../Logger";
 import {topics} from "../../declarations/topics";
+import {UartRxType} from "../../declarations/enums";
 
 const log = Logger(__filename);
 
@@ -67,7 +68,7 @@ export class UartMessageQueue {
     if (this._activeWrite === null) {
       this._activeWrite = this.queue[0];
       this._writeTimeout = setTimeout(() => {
-        this._activeWrite.rejector({code: 500, message:"Timeout when sending type:" + this._activeWrite.dataType});
+        this._activeWrite.rejector({code: "TIME_OUT_ON_WRITE", message:"Timeout when sending type:" + this._activeWrite.dataType});
         this.cleanActiveWrite();
       }, WRITE_TIMEOUT);
 
@@ -88,6 +89,14 @@ export class UartMessageQueue {
       if (this._activeWrite) {
         if (this._activeWrite.dataType === rxType) {
           this._activeWrite.resolver();
+          this.cleanActiveWrite();
+        }
+        else if (rxType === UartRxType.DECRYPTION_FAILED) {
+          this._activeWrite.rejector({code: "WRITE_ENCRYPTION_REJECTED", message:"Decryption has failed."})
+          this.cleanActiveWrite();
+        }
+        else if (rxType === UartRxType.ERROR_REPLY) {
+          this._activeWrite.rejector({code: "MESSAGE_REJECTED", message:"Either invalid packet or invalid encryption used."})
           this.cleanActiveWrite();
         }
       }

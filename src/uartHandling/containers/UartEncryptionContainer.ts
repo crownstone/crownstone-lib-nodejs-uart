@@ -23,6 +23,7 @@ export class UartEncryptionContainer {
     EncryptionHandler.fillWithRandomNumbers(this.incomingSessionData);
   }
 
+
   removeKey() {
     this.key      = null;
     this.keyIsSet = false;

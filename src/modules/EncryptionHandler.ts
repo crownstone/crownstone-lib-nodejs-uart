@@ -9,8 +9,12 @@ export class EncryptionHandler {
     this.uartRef = uart;
   }
 
-  setKey(key : string | Buffer) {
+  async setKey(key : string | Buffer) {
     this.uartRef.transferOverhead.setKey(key);
+    if (this.uartRef.link.port && this.uartRef.link.connected) {
+      // refresh the mode in case we set a new key
+      await this.uartRef.link.port.setHubMode();
+    }
   }
 
 
@@ -24,5 +28,4 @@ export class EncryptionHandler {
       await this.uartRef.link.port.refreshSessionData();
     }
   }
-
 }

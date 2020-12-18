@@ -16,7 +16,7 @@ export class HubHandler {
   async setMode(mode: UartDeviceMode) : Promise<void> {
     this.uartRef.transferOverhead.setMode(mode);
     if (this.uartRef.link.port && this.uartRef.link.connected) {
-      await this.uartRef.link.port.setHubMode(true);
+      await this.uartRef.link.port.setHubMode();
     }
   }
 
