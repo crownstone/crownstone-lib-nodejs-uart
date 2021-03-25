@@ -71,10 +71,10 @@ export class UartLink {
       else {
         this.transferOverhead.encryption.enabled = false;
       }
-      // if (this.transferOverhead.mode === "HUB" && data.hubMode !== true) {
-      // }
+      if (this.transferOverhead.mode === "HUB" && data.hubMode !== true) {
+        await this.setHubMode();
+      }
       await this.setStatus();
-      await this.setHubMode();
     }));
   }
 
@@ -109,6 +109,11 @@ export class UartLink {
     return new Promise((resolve, reject) => {
       this.port.close(() => { resolve(); });
     })
+  }
+
+  connectionAttemptCompleted() {
+    this.resolver = null;
+    this.rejecter = null;
   }
 
   cleanup() {
@@ -151,7 +156,8 @@ export class UartLink {
     let closeTimeout = setTimeout(() => { if (!this.success) {
       log.info("Failed setting up connection, timeout");
       this.closeConnection();
-      this.rejecter();
+      this.rejecter && this.rejecter("HANDSHAKE_FAILED");
+      this.connectionAttemptCompleted();
     }}, 1000);
 
     this.unsubscribeHello = eventBus.on(topics.HelloReceived, () => {
@@ -159,7 +165,8 @@ export class UartLink {
       this.success = true;
       this.unsubscribeHello();
       this.heartBeatInterval = setInterval(() => { this.heartBeat()}, 2000);
-      this.resolver();
+      this.resolver && this.resolver();
+      this.connectionAttemptCompleted();
     });
 
     try {
@@ -196,6 +203,8 @@ export class UartLink {
   handleError(err) {
     log.info("Connection error", err)
     this.closeConnection();
+    this.rejecter && this.rejecter(err);
+    this.connectionAttemptCompleted();
   }
 
 

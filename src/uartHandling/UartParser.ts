@@ -10,6 +10,7 @@ import {MeshExternalStatePart0} from "./uartPackets/parser/MeshExternalStatePart
 import {MeshExternalStatePart1} from "./uartPackets/parser/MeshExternalStatePart1";
 import {topics} from "../declarations/topics";
 import {PresenceChangedPacket} from "./contentPackets/rx/PresenceChangedPacket";
+
 const log = Logger(__filename, true);
 
 const MeshDataUniquenessChecker = {};
@@ -29,7 +30,7 @@ export class UartParser {
 
     eventBus.emit(topics.RxTypeReceived, dataPacket.dataType);
     if (dataPacket.dataType < 60000) {
-      log.debug("Handling packet:", dataPacket.dataType);
+      log.verbose("Handling packet:", dataPacket.dataType);
     }
     if (dataType === UartRxType.HELLO) {
       let hello = new HelloPacket(dataPacket.payload);

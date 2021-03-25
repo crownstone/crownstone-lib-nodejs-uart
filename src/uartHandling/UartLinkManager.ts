@@ -110,7 +110,12 @@ export class UartLinkManager {
 
     return promise.catch((err) => {
       log.info("initiateConnection error", err)
-      this.triedPorts = [];
+      if (err && err.message && err.message.indexOf('Cannot lock port') !== -1) {
+        // Do not clear the list here. This bus is already in use. Try another. It will wrap back around due to the COULD_NOT_OPEN_CONNECTION_TO_UART.
+      }
+      else {
+        this.triedPorts = [];
+      }
       if (this.autoReconnect) {
         Util.wait(500)
           .then(() => {
