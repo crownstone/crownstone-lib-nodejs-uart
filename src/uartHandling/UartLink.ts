@@ -11,7 +11,7 @@ import {UartTransferOverhead} from "./containers/UartTransferOverhead";
 import {UartMessageQueue} from "./containers/UartMessageQueue";
 import {topics} from "../declarations/topics";
 import {HelloPacket} from "./contentPackets/rx/Hello";
-import {ControlStateSetPacket, StateType} from "crownstone-core";
+import {ControlStateSetPacket, ResultPacket, StateType} from "crownstone-core";
 import {HelloTXPacket} from "./contentPackets/tx/HelloTx";
 import {getSessionNonceTx} from "./contentPackets/tx/SessionNonceTx";
 import {HubStatusTx} from "./contentPackets/tx/HubStatusTx";
@@ -229,7 +229,7 @@ export class UartLink {
   }
 
 
-  async write(uartMessage: UartWrapperV2) : Promise<void> {
+  async write(uartMessage: UartWrapperV2) : Promise<ResultPacket | void> {
     // handle encryption here.
     uartMessage.setDeviceId(this.transferOverhead.deviceId);
     let dataType = uartMessage.dataType
@@ -252,7 +252,7 @@ export class UartLink {
       packet = uartMessage.getPacket();
     }
 
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<ResultPacket | void>((resolve, reject) => {
       this.queue.add(uartMessage.dataType, packet, resolve, reject);
     })
     .catch((err) => {

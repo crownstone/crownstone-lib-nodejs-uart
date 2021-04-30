@@ -1,5 +1,5 @@
 export const topics = {
-  RxTypeReceived:        'RxTypeReceived',
+  RxReceived:            'RxReceived',
   HelloReceived:         'HelloReceived',
   KeyRequested:          'KeyRequested',
   DecryptionFailed:      'DecryptionFailed',
@@ -22,6 +22,10 @@ export const topics = {
   MeshServiceData_part1: 'MeshServiceData_part1',
 
   ConnectionEstablished: 'ConnectionEstablished',
+
+  AssetMacReport:                  'AssetMacReport',
+  NearstCrownstoneTrackingUpdate:  'NearstCrownstoneTrackingUpdate',
+  NearstCrownstoneTrackingTimeout: 'NearstCrownstoneTrackingTimeout',
 }
 
 export const devTopics = {

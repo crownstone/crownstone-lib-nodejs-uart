@@ -1,8 +1,8 @@
-import {UartUtil} from "../util/UartUtil";
 import {eventBus} from "../singletons/EventBus";
 import {UartWrapperPacketV2} from "./uartPackets/UartWrapperPacketV2";
 import {Logger} from "../Logger";
 import {UartTransferOverhead} from "./containers/UartTransferOverhead";
+import {Util} from "crownstone-core";
 
 const log = Logger(__filename, true);
 
@@ -102,7 +102,7 @@ export class UartReadBuffer {
   process() {
     log.verbose("Processing buffer", this.buffer);
     let payload = this.buffer.slice(LENGTH_SIZE, this.buffer.length - CRC_SIZE);
-    let calculatedCrc = UartUtil.crc16_ccitt(payload);
+    let calculatedCrc = Util.crc16_ccitt(payload);
     let crcBuffer = Buffer.from(this.buffer.slice(this.buffer.length - CRC_SIZE, this.buffer.length));
     let sourceCrc = crcBuffer.readUInt16LE(0);
 

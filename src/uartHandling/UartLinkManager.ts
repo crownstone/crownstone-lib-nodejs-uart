@@ -2,7 +2,7 @@ import SerialPort from 'serialport'
 import {UartLink} from "./UartLink";
 import {getSnapSerialList} from "./snapDiscovery";
 import {CONFIG} from "../config/config";
-import {Util} from "crownstone-core";
+import {ResultPacket, Util} from "crownstone-core";
 import {Logger} from "../Logger";
 import {UartWrapperV2} from "./uartPackets/UartWrapperV2";
 import {UartTransferOverhead} from "./containers/UartTransferOverhead";
@@ -152,7 +152,7 @@ export class UartLinkManager {
 
 
 
-  async write(uartMessage: UartWrapperV2) {
+  async write(uartMessage: UartWrapperV2) : Promise<ResultPacket | void> {
     return this.port.write(uartMessage).catch();
   }
 

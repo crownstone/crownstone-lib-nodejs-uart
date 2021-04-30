@@ -26,21 +26,8 @@ export class UartUtil {
   static uartUnescape(val) {
     return val ^ UartUtil.UART_ESCAPE_FLIP_MASK
   }
-
-	// Copied implementation of nordic
-	static crc16_ccitt(arr8 : Buffer | number[]) {
-		let crc = 0xFFFF;
-		for (let i = 0; i < arr8.length; i++) {
-      crc = (crc >> 8 & 0xFF) | (crc << 8 & 0xFFFF);
-      crc ^= arr8[i];
-      crc ^= (crc & 0xFF) >> 4;
-      crc ^= (crc << 8 & 0xFFFF) << 4 & 0xFFFF;
-      crc ^= ((crc & 0xFF) << 4 & 0xFFFF) << 1 & 0xFFFF
-    }
-		return crc
-  }
 }
 
 export async function delay(ms: number = 200) : Promise<void> {
-  return new Promise((resolve, reject) => { setTimeout(() => { resolve() }, ms); });
+  return new Promise<void>((resolve, reject) => { setTimeout(() => { resolve() }, ms); });
 }

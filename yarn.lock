@@ -1040,10 +1040,8 @@ cross-spawn@^7.0.0:
     shebang-command "^2.0.0"
     which "^2.0.1"
 
-crownstone-core@^0.12.0:
-  version "0.12.0"
-  resolved "https://registry.yarnpkg.com/crownstone-core/-/crownstone-core-0.12.0.tgz#32a4f1a67441ede8c3cd986d9c900c9bf716e5f9"
-  integrity sha512-KLBZJHYtss0jrWJq7A+s0zfkQliHw5cK94mDCjxN4iP9GvyJc8seVzSgi3oLQYfHGp7rdzJgFq8J9D5KktQpZg==
+"crownstone-core@file:../crownstone-lib-nodejs-core":
+  version "0.13.1"
   dependencies:
     aes-js "^3.1.1"
     crownstone-logger "^0.1.4"
@@ -3737,10 +3735,10 @@ typedarray-to-buffer@^3.1.5:
   dependencies:
     is-typedarray "^1.0.0"
 
-typescript@^4.0.5:
-  version "4.0.5"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.0.5.tgz#ae9dddfd1069f1cb5beb3ef3b2170dd7c1332389"
-  integrity sha512-ywmr/VrTVCmNTJ6iV2LwIrfG1P+lv6luD8sUJs+2eI9NLGigaN+nUQc13iHqisq7bra9lnmUSYqbJvegraBOPQ==
+typescript@4.2.4:
+  version "4.2.4"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.2.4.tgz#8610b59747de028fda898a8aef0e103f156d0961"
+  integrity sha512-V+evlYHZnQkaz8TRBuxTA92yZBPotr5H+WhQ7bD3hZUndx5tGOa1fuCgeSjxAzM1RiN5IzvadIXTVefuuwZCRg==
 
 union-value@^1.0.0:
   version "1.0.1"

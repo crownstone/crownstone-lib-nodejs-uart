@@ -2,13 +2,14 @@ import {UartManager} from "../uartHandling/UartManager";
 import {Logger} from "../Logger";
 import {
   ControlPacket,
-  ControlPacketsGenerator, ControlType,
-  MeshMultiSwitchPacket,
+  ControlPacketsGenerator, ControlType, FilterChunker, FilterMetaData, FilterSummaries,
+  MeshMultiSwitchPacket, ResultPacket, ResultValue,
   StoneMultiSwitchPacket,
   Util
 } from "crownstone-core";
 import {UartWrapperV2} from "../uartHandling/uartPackets/UartWrapperV2";
 import {UartTxType} from "../declarations/enums";
+
 const log = Logger(__filename);
 
 export class ControlHandler {
@@ -85,15 +86,73 @@ export class ControlHandler {
     let meshMultiSwitchPacket = new MeshMultiSwitchPacket(packets).getPacket();
 
     // wrap that in a control packet
-    let controlPacket = new ControlPacket(ControlType.MULTISWITCH).loadByteArray(meshMultiSwitchPacket).getPacket();
+    let controlPacket = new ControlPacket(ControlType.MULTISWITCH).loadBuffer(meshMultiSwitchPacket).getPacket();
 
-    return this.write(controlPacket);
+    await this.write(controlPacket);
   }
 
 
-  async write(controlPacket : Buffer) {
+  async uploadFilter(filterId: number, metaData: FilterMetaData, filterData: Buffer) {
+    let maxIterations = 5;
+    let fullData = Buffer.concat([metaData.getPacket(), filterData])
+
+    let chunker = new FilterChunker(filterId, fullData);
+    let iteration = 0;
+    let finished = false;
+    while (finished === false && iteration < maxIterations) {
+      iteration++;
+      let chunkData = chunker.getChunk();
+      finished = chunkData.finished;
+
+      let chunkPacket   = ControlPacketsGenerator.getUploadFilterPacket(chunkData.packet);
+      let controlPacket = new ControlPacket(ControlType.UPLOAD_FILTER).loadBuffer(chunkPacket).getPacket();
+
+      let result = await this.write(controlPacket);
+      if (resultChecker(result)) { continue; }
+    }
+  }
+
+  async removeFilter(filterId : number) {
+    let chunkPacket   = ControlPacketsGenerator.getRemoveFilterPacket(filterId);
+    let controlPacket = new ControlPacket(ControlType.REMOVE_FILTER).loadBuffer(chunkPacket).getPacket();
+    let result = await this.write(controlPacket);
+    resultChecker(result);
+  }
+
+  async getFilterSummaries() {
+    let chunkPacket   = ControlPacketsGenerator.getGetFilterSummariesPacket();
+    let controlPacket = new ControlPacket(ControlType.GET_FILTER_SUMMARIES).loadBuffer(chunkPacket).getPacket();
+    let result = await this.write(controlPacket);
+    resultChecker(result);
+  }
+
+  async commitFilterChanges(masterVersion: number, masterCRC: number) : Promise<FilterSummaries> {
+    let chunkPacket   = ControlPacketsGenerator.getCommitFilterChangesPacket(masterVersion, masterCRC);
+    let controlPacket = new ControlPacket(ControlType.COMMIT_FILTER_CHANGES).loadBuffer(chunkPacket).getPacket();
+    let result = await this.write(controlPacket);
+    resultChecker(result);
+    // this is always true but it makes typescript happy
+    if (result) {
+      return new FilterSummaries(result.payload);
+    }
+    throw "NO_RESULT_RECEIVED";
+  }
+
+
+
+
+  async write(controlPacket : Buffer) : Promise<ResultPacket | void> {
     let uartPacket = new UartWrapperV2(UartTxType.CONTROL, controlPacket)
     await this.uartRef.write(uartPacket)
   }
+}
 
+function resultChecker(result: ResultPacket | void) {
+  if (result) {
+    if (result.resultCode === ResultValue.SUCCESS) {
+      return true;
+    }
+    throw result.resultCode
+  }
+  throw "NO_RESULT_RECEIVED"
 }

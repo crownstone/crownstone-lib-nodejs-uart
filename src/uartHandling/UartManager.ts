@@ -1,4 +1,4 @@
-import { ControlPacketsGenerator } from "crownstone-core";
+import {ControlPacketsGenerator, ResultPacket} from "crownstone-core";
 
 import {UartTxType} from "../declarations/enums";
 import {UartLinkManager} from "./UartLinkManager";
@@ -27,7 +27,7 @@ export class UartManager {
     await this.write(uartPacket)
   }
 
-  async write(uartMessage: UartWrapperV2) {
+  async write(uartMessage: UartWrapperV2) : Promise<ResultPacket | void> {
     return this.link.write(uartMessage).catch((e) => { console.error(e)});
   }
 

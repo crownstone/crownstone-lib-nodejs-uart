@@ -3,13 +3,15 @@ import Timeout = NodeJS.Timeout;
 import {Logger} from "../../Logger";
 import {topics} from "../../declarations/topics";
 import {UartRxType} from "../../declarations/enums";
+import {ResultPacket} from "crownstone-core";
+import {UartWrapperPacketV2} from "../uartPackets/UartWrapperPacketV2";
 
 const log = Logger(__filename);
 
 interface ActiveWrite {
   dataType: number,
   data: Buffer
-  resolver: () => void,
+  resolver: (arg: ResultPacket | void) => void,
   rejector: (err) => void
 }
 
@@ -28,7 +30,7 @@ export class UartMessageQueue {
 
   constructor(writeCallback) {
     this.writeCallback = writeCallback;
-    this.eventListeners.push(eventBus.on(topics.RxTypeReceived, (rxType) => { this._handleRxType(rxType) }));
+    this.eventListeners.push(eventBus.on(topics.RxReceived, (dataPacket : UartWrapperPacketV2) => { this._handleRx(dataPacket) }));
   }
 
   cleanup() {
@@ -84,11 +86,19 @@ export class UartMessageQueue {
   }
 
 
-  _handleRxType(rxType) {
+  _handleRx(dataPacket : UartWrapperPacketV2) {
+    let rxType = dataPacket.dataType;
     if (rxType < 10000) {
       if (this._activeWrite) {
         if (this._activeWrite.dataType === rxType) {
-          this._activeWrite.resolver();
+          if (rxType === UartRxType.RESULT_PACKET) {
+            let packet = new ResultPacket(dataPacket.payload);
+            this._activeWrite.resolver(packet);
+          }
+          else {
+            this._activeWrite.resolver();
+          }
+
           this.cleanActiveWrite();
         }
         else if (rxType === UartRxType.DECRYPTION_FAILED) {

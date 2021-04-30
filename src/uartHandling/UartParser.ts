@@ -10,6 +10,11 @@ import {MeshExternalStatePart0} from "./uartPackets/parser/MeshExternalStatePart
 import {MeshExternalStatePart1} from "./uartPackets/parser/MeshExternalStatePart1";
 import {topics} from "../declarations/topics";
 import {PresenceChangedPacket} from "./contentPackets/rx/PresenceChangedPacket";
+import {AssetMacReport} from "./uartPackets/parser/AssetMacReport";
+import {
+  NearestCrownstoneTrackingTimeout,
+  NearestCrownstoneTrackingUpdate
+} from "./uartPackets/parser/NearestCrownstone";
 
 const log = Logger(__filename, true);
 
@@ -28,10 +33,12 @@ export class UartParser {
       return;
     }
 
-    eventBus.emit(topics.RxTypeReceived, dataPacket.dataType);
+    eventBus.emit(topics.RxReceived, dataPacket);
+
     if (dataPacket.dataType < 60000) {
       log.verbose("Handling packet:", dataPacket.dataType);
     }
+
     if (dataType === UartRxType.HELLO) {
       let hello = new HelloPacket(dataPacket.payload);
       if (hello.valid) {
@@ -159,6 +166,27 @@ export class UartParser {
           log.silly("MeshServiceData", serviceData.getJSON())
           eventBus.emit(topics.MeshServiceData_part1, serviceData.getJSON())
         }
+      }
+    }
+    else if (dataType === UartRxType.ASSET_MAC_RSSI_REPORT) {
+      let macReport = new AssetMacReport(dataPacket.payload);
+      if (macReport.valid) {
+        log.silly("AssetMacReport", macReport.getJSON());
+        eventBus.emit(topics.AssetMacReport, macReport.getJSON());
+      }
+    }
+    else if (dataType === UartRxType.NEAREST_CROWNSTONE_TRACKING_UPDATE) {
+      let update = new NearestCrownstoneTrackingUpdate(dataPacket.payload);
+      if (update.valid) {
+        log.silly("NearestCrownstoneTrackingUpdate", update.getJSON());
+        eventBus.emit(topics.NearstCrownstoneTrackingUpdate, update.getJSON());
+      }
+    }
+    else if (dataType === UartRxType.NEAREST_CROWNSTONE_TRACKING_TIMEOUT) {
+      let timeoutData = new NearestCrownstoneTrackingTimeout(dataPacket.payload);
+      if (timeoutData.valid) {
+        log.silly("AssetMacReport", timeoutData.getJSON());
+        eventBus.emit(topics.NearstCrownstoneTrackingTimeout, timeoutData.getJSON());
       }
     }
     else if (dataType === UartRxType.MESH_RESULT) {

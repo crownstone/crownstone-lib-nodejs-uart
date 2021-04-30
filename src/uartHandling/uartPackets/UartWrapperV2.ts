@@ -1,5 +1,4 @@
-import {UartUtil} from "../../util/UartUtil";
-import {DataWriter, EncryptionHandler } from "crownstone-core";
+import {DataWriter, EncryptionHandler, Util} from "crownstone-core";
 
 const ESCAPE_TOKEN = 0x5c;
 const BIT_FLIP_MASK = 0x40;
@@ -114,7 +113,7 @@ export class UartWrapperV2 {
 
 	_wrapPacket(packet : Buffer) : Buffer {
 		// calculate the CRC of the packet for everything after the size
-		let baseCrc = UartUtil.crc16_ccitt(packet);
+		let baseCrc = Util.crc16_ccitt(packet);
 		let crcBuffer = Buffer.alloc(2 );
 		crcBuffer.writeUInt16LE(baseCrc,0);
 		// append the CRC to the base packet to escape the entire thing
