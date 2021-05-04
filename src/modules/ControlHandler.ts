@@ -119,26 +119,22 @@ export class ControlHandler {
     resultChecker(result);
   }
 
-  async getFilterSummaries() {
+  async getFilterSummaries() : Promise<FilterSummaries> {
     let chunkPacket   = ControlPacketsGenerator.getGetFilterSummariesPacket();
     let controlPacket = new ControlPacket(ControlType.GET_FILTER_SUMMARIES).loadBuffer(chunkPacket).getPacket();
     let result = await this.write(controlPacket);
     resultChecker(result);
+
+    // @ts-ignore
+    return new FilterSummaries(result.payload);
   }
 
-  async commitFilterChanges(masterVersion: number, masterCRC: number) : Promise<FilterSummaries> {
+  async commitFilterChanges(masterVersion: number, masterCRC: number) : Promise<void> {
     let chunkPacket   = ControlPacketsGenerator.getCommitFilterChangesPacket(masterVersion, masterCRC);
     let controlPacket = new ControlPacket(ControlType.COMMIT_FILTER_CHANGES).loadBuffer(chunkPacket).getPacket();
     let result = await this.write(controlPacket);
     resultChecker(result);
-    // this is always true but it makes typescript happy
-    if (result) {
-      return new FilterSummaries(result.payload);
-    }
-    throw "NO_RESULT_RECEIVED";
   }
-
-
 
 
   async write(controlPacket : Buffer) : Promise<ResultPacket | void> {
