@@ -30,3 +30,21 @@ interface HubStatusData {
   clientHasInternet? : boolean,
   clientHasError?    : boolean,
 }
+
+interface AssetMacReportData {
+  macAddress:   string,
+  crownstoneId: number,
+  rssi:         number,
+  channel:      number,
+}
+
+interface NearestCrownstoneUpdateData {
+  assetId:      string,
+  crownstoneId: number,
+  rssi:         number,
+  channel:      number,
+}
+
+interface NearestCrownstoneTimeoutData {
+  assetId:      string,
+}

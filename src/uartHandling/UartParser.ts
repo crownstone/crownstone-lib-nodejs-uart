@@ -229,6 +229,10 @@ export class UartParser {
     }
     else if (dataType === UartRxType.POWER_LOG_POWER) {
     }
+    else if (dataType === UartRxType.BINARY_DEBUG_LOG) {
+    }
+    else if (dataType === UartRxType.BINARY_DEBUG_LOG_ARRAY) {
+    }
     else if (dataType === UartRxType.ASCII_LOG) {
       let stringResult = ""
       for (let i = 0; i< dataPacket.payload.length; i++) {

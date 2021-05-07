@@ -30,9 +30,9 @@ export class NearestCrownstoneTrackingUpdate {
     }
   }
 
-  getJSON() {
+  getJSON() : NearestCrownstoneUpdateData {
     return {
-      assetId:      [...this.assetId],
+      assetId:      this.assetId.toString('hex'),
       crownstoneId: this.crownstoneId,
       rssi:         this.rssi,
       channel:      this.channel,
@@ -64,9 +64,9 @@ export class NearestCrownstoneTrackingTimeout {
     }
   }
 
-  getJSON() {
+  getJSON() : NearestCrownstoneTimeoutData {
     return {
-      assetId: [...this.assetId],
+      assetId: this.assetId.toString('hex'),
     }
   }
 }

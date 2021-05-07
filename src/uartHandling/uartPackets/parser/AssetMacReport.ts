@@ -30,9 +30,9 @@ export class AssetMacReport {
     }
   }
 
-  getJSON() {
+  getJSON() : AssetMacReportData {
     return {
-      macAddress:   [...this.macAddress],
+      macAddress:   this.macAddress.toString('hex'),
       crownstoneId: this.crownstoneId,
       rssi:         this.rssi,
       channel:      this.channel,
