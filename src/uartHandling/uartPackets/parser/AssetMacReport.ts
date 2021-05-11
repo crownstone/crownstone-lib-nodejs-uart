@@ -20,7 +20,7 @@ export class AssetMacReport {
 
       let stepper = new DataStepper(data);
 
-      this.macAddress   = stepper.getBuffer(6);
+      this.macAddress   = stepper.getBuffer(6).reverse();
       this.crownstoneId = stepper.getUInt8();
       this.rssi         = stepper.getInt8();
       this.channel      = stepper.getUInt8(); // 37, 38, 39

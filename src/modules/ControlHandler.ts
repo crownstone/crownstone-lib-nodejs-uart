@@ -15,6 +15,7 @@ const log = Logger(__filename);
 export class ControlHandler {
   uartRef : UartManager;
 
+
   constructor(uart: UartManager) {
     this.uartRef = uart;
   }
@@ -104,24 +105,23 @@ export class ControlHandler {
       let chunkData = chunker.getChunk();
       finished = chunkData.finished;
 
-      let chunkPacket   = ControlPacketsGenerator.getUploadFilterPacket(chunkData.packet);
-      let controlPacket = new ControlPacket(ControlType.UPLOAD_FILTER).loadBuffer(chunkPacket).getPacket();
+      let controlPacket = ControlPacketsGenerator.getUploadFilterPacket(chunkData.packet);
 
       let result = await this.write(controlPacket);
       if (resultChecker(result)) { continue; }
     }
   }
 
+
   async removeFilter(filterId : number) {
-    let chunkPacket   = ControlPacketsGenerator.getRemoveFilterPacket(filterId);
-    let controlPacket = new ControlPacket(ControlType.REMOVE_FILTER).loadBuffer(chunkPacket).getPacket();
+    let controlPacket   = ControlPacketsGenerator.getRemoveFilterPacket(filterId);
     let result = await this.write(controlPacket);
     resultChecker(result);
   }
 
+
   async getFilterSummaries() : Promise<FilterSummaries> {
-    let chunkPacket   = ControlPacketsGenerator.getGetFilterSummariesPacket();
-    let controlPacket = new ControlPacket(ControlType.GET_FILTER_SUMMARIES).loadBuffer(chunkPacket).getPacket();
+    let controlPacket   = ControlPacketsGenerator.getGetFilterSummariesPacket();
     let result = await this.write(controlPacket);
     resultChecker(result);
 
@@ -129,9 +129,9 @@ export class ControlHandler {
     return new FilterSummaries(result.payload);
   }
 
+
   async commitFilterChanges(masterVersion: number, masterCRC: number) : Promise<void> {
-    let chunkPacket   = ControlPacketsGenerator.getCommitFilterChangesPacket(masterVersion, masterCRC);
-    let controlPacket = new ControlPacket(ControlType.COMMIT_FILTER_CHANGES).loadBuffer(chunkPacket).getPacket();
+    let controlPacket   = ControlPacketsGenerator.getCommitFilterChangesPacket(masterVersion, masterCRC);
     let result = await this.write(controlPacket);
     resultChecker(result);
   }
@@ -139,7 +139,7 @@ export class ControlHandler {
 
   async write(controlPacket : Buffer) : Promise<ResultPacket | void> {
     let uartPacket = new UartWrapperV2(UartTxType.CONTROL, controlPacket)
-    await this.uartRef.write(uartPacket)
+    return await this.uartRef.write(uartPacket)
   }
 }
 
