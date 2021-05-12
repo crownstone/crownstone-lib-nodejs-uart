@@ -3,15 +3,23 @@ import {UartEncryptionContainer} from "./UartEncryptionContainer";
 
 export class UartTransferOverhead {
 
-  deviceId: number
+  deviceId: number;
   encryption: UartEncryptionContainer
-  mode : UartDeviceMode = "CROWNSTONE"
+  mode : UartDeviceMode = "CROWNSTONE";
   status: HubStatus;
+
+  // the max chunk size may be required for certain jlink boards.
+  // we set it at 64 per default, any overhead is irrelevant.
+  maxChunkSize: number = 64;
 
   constructor(deviceId: number) {
     this.deviceId = deviceId;
     this.status = new HubStatus()
     this.encryption =  new UartEncryptionContainer();
+  }
+
+  setMaxChunkSize(size: number) {
+    this.maxChunkSize = size;
   }
 
   setMode(mode: UartDeviceMode) {

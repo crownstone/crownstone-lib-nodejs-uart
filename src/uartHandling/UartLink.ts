@@ -264,9 +264,31 @@ export class UartLink {
   }
 
 
-  _write(data) : Promise<void> {
-    return new Promise((resolve, reject) => {
+
+  async _write(data : Buffer) : Promise<void> {
+    if (this.transferOverhead.maxChunkSize == 0) {
       log.verbose("Writing packet")
+      await this.__writePromise(data)
+    }
+    else {
+      // writing in chunks solves issues writing to certain JLink chips. A max chunkSize of 64 was found to work well for our case.
+      let chunkSize = this.transferOverhead.maxChunkSize
+      let index = 0
+      while ((index * chunkSize) < data.length) {
+        let chunkedData = data.subarray(index * chunkSize, (index + 1) * chunkSize)
+        index += 1
+        await this.__writePromise(chunkedData);
+      }
+    }
+  }
+
+
+  /**
+   * Simple util method that transforms the callback api of the serial lib to a promise.
+   * @param data
+   */
+  __writePromise(data: Buffer) : Promise<void> {
+    return new Promise<void>((resolve, reject) => {
       this.port.write(data, (err) => {
         if (err) {
           reject(err);
@@ -275,7 +297,7 @@ export class UartLink {
           resolve()
         }
       });
-    });
+    })
   }
 
 }
