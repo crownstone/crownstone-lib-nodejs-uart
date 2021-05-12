@@ -93,11 +93,10 @@ export class ControlHandler {
   }
 
 
-  async uploadFilter(filterId: number, metaData: FilterMetaData, filterData: Buffer) {
+  async uploadFilter(filterId: number, filterData: Buffer) {
     let maxIterations = 5;
-    let fullData = Buffer.concat([metaData.getPacket(), filterData])
 
-    let chunker = new FilterChunker(filterId, fullData);
+    let chunker = new FilterChunker(filterId, filterData);
     let iteration = 0;
     let finished = false;
     while (finished === false && iteration < maxIterations) {
