@@ -1,6 +1,6 @@
 {
   "name": "crownstone-uart",
-  "version": "0.19.4",
+  "version": "0.19.5",
   "scripts": {
     "start": "tsc -watch",
     "build": "rimraf ./dist && tsc",
