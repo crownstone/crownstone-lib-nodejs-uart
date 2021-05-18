@@ -144,7 +144,7 @@ export class ControlHandler {
 
 function resultChecker(result: ResultPacket | void) {
   if (result) {
-    if (result.resultCode === ResultValue.SUCCESS) {
+    if (result.resultCode === ResultValue.SUCCESS || result.resultCode === ResultValue.SUCCESS_NO_CHANGE) {
       return true;
     }
     throw result.resultCode

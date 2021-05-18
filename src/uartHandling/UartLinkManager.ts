@@ -115,8 +115,7 @@ export class UartLinkManager {
       if (this.autoReconnect) {
         log.info("Retrying connection...")
         await Util.wait(500)
-        return this.initiateConnection().catch((err) => { log.warn("Failed to initiate Connection", err)})
-
+        await this.initiateConnection().catch((err) => { log.warn("Failed to initiate Connection", err)})
       }
       else {
         log.notice("initiateConnection error will not auto-retry. Escalating error...");
