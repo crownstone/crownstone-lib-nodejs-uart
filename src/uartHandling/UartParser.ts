@@ -87,7 +87,7 @@ export class UartParser {
       console.log("ERROR REPLY......")
     }
     else if (dataType === UartRxType.SESSION_NONCE_MISSING_REPLY) {
-      log.warn("NO_SESSION_NONCE_AVAILABLE")
+      log.warn("SESSION_NONCE_MISSING_REPLY")
       eventBus.emit(topics.SessionNonceMissing);
     }
     else if (dataType === UartRxType.DECRYPTION_FAILED) {
@@ -100,7 +100,7 @@ export class UartParser {
       eventBus.emit(topics.UartMessage, {string: string, data: dataPacket.payload})
     }
     else if (dataType === UartRxType.SESSION_NONCE_MISSING) {
-      log.warn("NO_SESSION_NONCE_AVAILABLE")
+      log.warn("SESSION_NONCE_MISSING")
       eventBus.emit(topics.SessionNonceMissing);
     }
     else if (dataType === UartRxType.OWN_SERVICE_DATA) {

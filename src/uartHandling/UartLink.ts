@@ -36,6 +36,7 @@ export class UartLink {
   rejecter;
   pingInterval;
   refreshSessionNonceInterval;
+  refreshingSessionData = false;
 
   unsubscribeEvents : (() => void)[] = [];
   unsubscribeHello  =  () => {};
@@ -44,6 +45,9 @@ export class UartLink {
 
   transferOverhead: UartTransferOverhead;
   queue : UartMessageQueue;
+
+  errorHandled = false;
+  closed       = false;
 
   constructor(reconnectionCallback, transferOverhead : UartTransferOverhead) {
     this.queue = new UartMessageQueue((data) => { return this._write(data); })
@@ -83,15 +87,28 @@ export class UartLink {
       log.info("Encryption is required, but no key is loaded. Please load an encryption key using .setKey(key : string | Buffer)");
       eventBus.emit(topics.KeyRequested);
     }
+
+    if (this.refreshingSessionData) { return; }
+    this.refreshingSessionData = true;
+
     this.transferOverhead.encryption.enabled = true;
     clearTimeout(this.refreshSessionNonceInterval);
+
     this.refreshSessionNonceInterval = setTimeout(() => {
       this.refreshSessionData(timeoutMinutes)
     }, 0.8*timeoutMinutes*60*1000);
 
     this.transferOverhead.refreshSessionData();
     let sessionNoncePacket = getSessionNonceTx(timeoutMinutes, this.transferOverhead.encryption.outgoingSessionData);
-    await this.write(sessionNoncePacket);
+    try {
+      await this.write(sessionNoncePacket);
+    }
+    catch(err) {
+      log.warn("Failed to refresh session data", err);
+    }
+    finally {
+      this.refreshingSessionData = false;
+    }
   }
 
   async setHubMode() {
@@ -178,11 +195,15 @@ export class UartLink {
     }
     catch (err) {
       log.warn("Hello failed.", err);
+      this.handleError(err);
     }
   }
 
 
   closeConnection() {
+    if (this.closed) { return; }
+    this.closed = true;
+
     clearInterval(this.heartBeatInterval);
     let connectionHasBeenSuccessful = this.success;
     this.port.close(() => { this.cleanup(); });
@@ -201,7 +222,10 @@ export class UartLink {
   }
 
   handleError(err) {
-    log.info("Connection error", err)
+    if (this.errorHandled) { return; }
+    this.errorHandled = true;
+
+    log.info("Connection error", err);
     this.closeConnection();
     this.rejecter && this.rejecter(err);
     this.connectionAttemptCompleted();

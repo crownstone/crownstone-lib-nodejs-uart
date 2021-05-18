@@ -66,7 +66,7 @@ export class UartMessageQueue {
       return;
     }
 
-    log.debug("Handling next item in queue");
+    log.debug("Handling next item in queue. Items left:", this.queue.length);
     if (this._activeWrite === null) {
       this._activeWrite = this.queue[0];
       this._writeTimeout = setTimeout(() => {
@@ -102,11 +102,11 @@ export class UartMessageQueue {
           this.cleanActiveWrite();
         }
         else if (rxType === UartRxType.DECRYPTION_FAILED) {
-          this._activeWrite.rejector({code: "WRITE_ENCRYPTION_REJECTED", message:"Decryption has failed."})
+          this._activeWrite.rejector({code: "WRITE_ENCRYPTION_REJECTED", message:"Decryption has failed."});
           this.cleanActiveWrite();
         }
         else if (rxType === UartRxType.ERROR_REPLY) {
-          this._activeWrite.rejector({code: "MESSAGE_REJECTED", message:"Either invalid packet or invalid encryption used."})
+          this._activeWrite.rejector({code: "MESSAGE_REJECTED", message:"Either invalid packet or invalid encryption used."});
           this.cleanActiveWrite();
         }
       }
