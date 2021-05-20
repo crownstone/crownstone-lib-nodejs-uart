@@ -32,11 +32,25 @@ export class AssetMacReport {
 
   getJSON() : AssetMacReportData {
     return {
-      macAddress:   this.macAddress.toString('hex'),
+      macAddress:   macAddressToString(this.macAddress),
       crownstoneId: this.crownstoneId,
       rssi:         this.rssi,
       channel:      this.channel,
     }
   }
+}
+
+function macAddressToString(macBuffer) {
+  let str = macBuffer.toString('hex');
+  let resultingStr = '';
+  let index = 0;
+  for (let char of str) {
+    resultingStr += char;
+    if (index % 2 == 1) {
+      resultingStr += ":"
+    }
+    index++;
+  }
+  return resultingStr.substr(0,17).toUpperCase();
 }
 
