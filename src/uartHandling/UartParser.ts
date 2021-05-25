@@ -15,6 +15,7 @@ import {
   NearestCrownstoneTrackingTimeout,
   NearestCrownstoneTrackingUpdate
 } from "./uartPackets/parser/NearestCrownstone";
+import {RssiBetweenStones} from "./uartPackets/parser/RssiBetweenStones";
 
 const log = Logger(__filename, true);
 
@@ -187,6 +188,13 @@ export class UartParser {
       if (timeoutData.valid) {
         log.silly("AssetMacReport", timeoutData.getJSON());
         eventBus.emit(topics.NearstCrownstoneTrackingTimeout, timeoutData.getJSON());
+      }
+    }
+    else if (dataType === UartRxType.RSSI_BETWEEN_STONES) {
+      let topologyUpdate = new RssiBetweenStones(dataPacket.payload);
+      if (topologyUpdate.valid) {
+        log.silly("RSSI_BETWEEN_STONES or TOPOLOGY_UPDATE", topologyUpdate.getJSON());
+        eventBus.emit(topics.TopologyUpdate, topologyUpdate.getJSON());
       }
     }
     else if (dataType === UartRxType.MESH_RESULT) {

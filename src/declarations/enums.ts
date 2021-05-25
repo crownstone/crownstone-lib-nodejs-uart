@@ -60,10 +60,10 @@ export const UartRxType = {
   EXTERNAL_STATE_PART_1:    	         10104,
   MESH_RESULT:              	         10105,
   MESH_ACK_ALL_RESULT:                 10106,
-  RSSI_BETWEEN_STONES:                 10107,
   ASSET_MAC_RSSI_REPORT:               10108,
   NEAREST_CROWNSTONE_TRACKING_UPDATE:  10109,
   NEAREST_CROWNSTONE_TRACKING_TIMEOUT: 10110,
+  RSSI_BETWEEN_STONES:                 10111,
 
   BINARY_DEBUG_LOG:                    10200,
   BINARY_DEBUG_LOG_ARRAY:              10201,

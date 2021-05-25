@@ -26,6 +26,8 @@ export const topics = {
   AssetMacReport:                  'AssetMacReport',
   NearstCrownstoneTrackingUpdate:  'NearstCrownstoneTrackingUpdate',
   NearstCrownstoneTrackingTimeout: 'NearstCrownstoneTrackingTimeout',
+
+  TopologyUpdate:                  'TopologyUpdate',
 }
 
 export const devTopics = {

@@ -45,6 +45,15 @@ interface NearestCrownstoneUpdateData {
   channel:      number,
 }
 
+interface TopologyUpdateData {
+  receiverId: number
+  senderId:   number
+  rssi37:     number
+  rssi38:     number
+  rssi39:     number
+  lastSeen:   number
+}
+
 interface NearestCrownstoneTimeoutData {
   assetId:      string,
 }

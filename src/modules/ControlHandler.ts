@@ -112,6 +112,13 @@ export class ControlHandler {
   }
 
 
+  async refreshTopology() {
+    let controlPacket   = ControlPacketsGenerator.getRefreshTopologyPacket();
+    let result = await this.write(controlPacket);
+    resultChecker(result);
+  }
+
+
   async removeFilter(filterId : number) {
     let controlPacket   = ControlPacketsGenerator.getRemoveFilterPacket(filterId);
     let result = await this.write(controlPacket);
