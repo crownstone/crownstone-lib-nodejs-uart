@@ -1,6 +1,7 @@
 import {DataStepper} from "crownstone-core";
 
 export class RssiBetweenStones {
+  type        : number;
   receiverId  : number;
   senderId    : number;
   rssi37      : number;
@@ -22,6 +23,7 @@ export class RssiBetweenStones {
 
       let stepper = new DataStepper(data);
 
+      this.type       = stepper.getUInt8();
       this.receiverId = stepper.getUInt8();
       this.senderId   = stepper.getUInt8();
       this.rssi37     = stepper.getInt8();
@@ -36,6 +38,7 @@ export class RssiBetweenStones {
 
   getJSON() : TopologyUpdateData {
     return {
+      type       : this.type,
       receiverId : this.receiverId,
       senderId   : this.senderId,
       rssi37     : this.rssi37,
