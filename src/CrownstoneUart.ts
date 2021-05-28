@@ -5,12 +5,14 @@ import {ControlHandler} from "./modules/ControlHandler";
 import {EncryptionHandler} from "./modules/EncryptionHandler";
 import {HubHandler} from "./modules/HubHandler";
 import {ConfigHandler} from "./modules/ConfigHandler";
+import {MeshHandler} from "./modules/MeshHandler";
 const log = Logger(__filename);
 
 export class CrownstoneUart {
 
   control    : ControlHandler
   encryption : EncryptionHandler
+  mesh       : MeshHandler
   hub        : HubHandler
   config     : ConfigHandler
 
@@ -20,6 +22,7 @@ export class CrownstoneUart {
 
   constructor() {
     this.uart       = new UartManager();
+    this.mesh       = new MeshHandler(this.uart);
     this.control    = new ControlHandler(this.uart);
     this.encryption = new EncryptionHandler(this.uart);
     this.hub        = new HubHandler(this.uart);
