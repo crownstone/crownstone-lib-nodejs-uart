@@ -53,6 +53,7 @@ interface TopologyUpdateData {
   rssi38:     number,
   rssi39:     number,
   lastSeen:   number,
+  messageNumber: number,
 }
 
 interface NearestCrownstoneTimeoutData {
