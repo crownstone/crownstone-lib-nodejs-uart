@@ -93,7 +93,7 @@ export class ControlHandler {
   }
 
 
-  async uploadFilter(filterId: number, filterData: Buffer) {
+  async uploadFilter(filterId: number, filterData: Buffer, filterCommandProtocol: number) {
     let maxIterations = 5;
 
     let chunker = new FilterChunker(filterId, filterData);
@@ -101,10 +101,10 @@ export class ControlHandler {
     let finished = false;
     while (finished === false && iteration < maxIterations) {
       iteration++;
-      let chunkData = chunker.getChunk();
+      let chunkData = chunker.getChunk(filterCommandProtocol);
       finished = chunkData.finished;
 
-      let controlPacket = ControlPacketsGenerator.getUploadFilterPacket(chunkData.packet);
+      let controlPacket = ControlPacketsGenerator.getUploadFilterPacket(chunkData.packet, filterCommandProtocol);
 
       let result = await this.write(controlPacket);
       if (resultChecker(result)) { continue; }
@@ -112,16 +112,16 @@ export class ControlHandler {
   }
 
 
-  async removeFilter(filterId : number) {
-    let controlPacket   = ControlPacketsGenerator.getRemoveFilterPacket(filterId);
+  async removeFilter(filterId : number, filterCommandProtocol: number) {
+    let controlPacket   = ControlPacketsGenerator.getRemoveFilterPacket(filterId, filterCommandProtocol);
     let result = await this.write(controlPacket);
     resultChecker(result);
   }
 
 
-  async getFilterSummaries() : Promise<FilterSummaries> {
-    let controlPacket   = ControlPacketsGenerator.getGetFilterSummariesPacket();
-    let result = await this.write(controlPacket);
+  async getFilterSummaries(filterCommandProtocol: number) : Promise<FilterSummaries> {
+    let controlPacket = ControlPacketsGenerator.getGetFilterSummariesPacket(filterCommandProtocol);
+    let result        = await this.write(controlPacket);
     resultChecker(result);
 
     // @ts-ignore
@@ -129,8 +129,8 @@ export class ControlHandler {
   }
 
 
-  async commitFilterChanges(masterVersion: number, masterCRC: number) : Promise<void> {
-    let controlPacket   = ControlPacketsGenerator.getCommitFilterChangesPacket(masterVersion, masterCRC);
+  async commitFilterChanges(masterVersion: number, masterCRC: number, filterCommandProtocol: number) : Promise<void> {
+    let controlPacket   = ControlPacketsGenerator.getCommitFilterChangesPacket(masterVersion, masterCRC, filterCommandProtocol);
     let result = await this.write(controlPacket);
     resultChecker(result);
   }

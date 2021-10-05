@@ -1,6 +1,6 @@
 {
   "name": "crownstone-uart",
-  "version": "0.24.1",
+  "version": "0.25.0",
   "scripts": {
     "start": "tsc -watch",
     "build": "rimraf ./dist && tsc",
@@ -11,7 +11,7 @@
   "types": "dist/index.d.ts",
   "dependencies": {
     "aes-js": "^3.1.1",
-    "crownstone-core": "^0.23.0",
+    "crownstone-core": "^0.24.0",
     "crownstone-logger": "^0.1.4",
     "serialport": "9.0.0"
   },
