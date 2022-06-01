@@ -19,19 +19,18 @@ const WRITE_TIMEOUT = 150; // ms
 
 
 export class UartMessageQueue {
-
   queue : ActiveWrite[] = [];
   writeCallback : (data: Buffer) => Promise<void>;
   eventListeners = [];
 
   _writeTimeout : Timeout = null;
-
   _activeWrite : ActiveWrite | null = null;
 
   constructor(writeCallback) {
     this.writeCallback = writeCallback;
     this.eventListeners.push(eventBus.on(topics.RxReceived, (dataPacket : UartWrapperPacketV2) => { this._handleRx(dataPacket) }));
   }
+
 
   cleanup() {
     clearTimeout(this._writeTimeout)
@@ -47,6 +46,7 @@ export class UartMessageQueue {
     this.queue.push(writeCommandItem);
     this._next();
   }
+
 
   cleanActiveWrite() {
     if (this._activeWrite) {
@@ -88,28 +88,35 @@ export class UartMessageQueue {
 
   _handleRx(dataPacket : UartWrapperPacketV2) {
     let rxType = dataPacket.dataType;
-    if (rxType < 10000) {
-      if (this._activeWrite) {
-        if (this._activeWrite.dataType === rxType) {
-          if (rxType === UartRxType.RESULT_PACKET) {
-            let packet = new ResultPacket(dataPacket.payload);
-            this._activeWrite.resolver(packet);
-          }
-          else {
-            this._activeWrite.resolver();
-          }
 
-          this.cleanActiveWrite();
-        }
-        else if (rxType === UartRxType.DECRYPTION_FAILED) {
-          this._activeWrite.rejector({code: "WRITE_ENCRYPTION_REJECTED", message:"Decryption has failed."});
-          this.cleanActiveWrite();
-        }
-        else if (rxType === UartRxType.ERROR_REPLY) {
-          this._activeWrite.rejector({code: "MESSAGE_REJECTED", message:"Either invalid packet or invalid encryption used."});
-          this.cleanActiveWrite();
-        }
+    // reply types are below 10000
+    if (rxType >= 10000)    { return; }
+
+    // if nothing is waiting to resolve, no need to handle here
+    if (!this._activeWrite) { return; }
+
+    // the values below 10000 are matched with TX type and RX type.
+    if (this._activeWrite.dataType === rxType) {
+      if (rxType === UartRxType.RESULT_PACKET) {
+
+        // TODO: add WAIT_FOR_SUCCESS support here before resolving.
+
+        let packet = new ResultPacket(dataPacket.payload);
+        this._activeWrite.resolver(packet);
       }
+      else {
+        this._activeWrite.resolver();
+      }
+
+      this.cleanActiveWrite();
+    }
+    else if (rxType === UartRxType.DECRYPTION_FAILED) {
+      this._activeWrite.rejector({code: "WRITE_ENCRYPTION_REJECTED", message:"Decryption has failed."});
+      this.cleanActiveWrite();
+    }
+    else if (rxType === UartRxType.ERROR_REPLY) {
+      this._activeWrite.rejector({code: "MESSAGE_REJECTED", message:"Either invalid packet or invalid encryption used."});
+      this.cleanActiveWrite();
     }
   }
 }
