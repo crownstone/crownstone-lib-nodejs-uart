@@ -1,15 +1,14 @@
 # crownstone-lib-nodejs-uart
-Uart module for the nodejs lib. Used to communicate with the Crownstone USB dongle.
 
-# WORK IN PROGRESS
-Do not use in current state. The bluenet-nodejs-lib is in the process of being separated into individual modules:
-- crownstone-lib-nodejs-core
-- crownstone-lib-nodejs-uart
-- crownstone-lib-nodejs-ble
-- crownstone-lib-nodejs-cloud
-- crownstone-lib-nodejs-sse
+UART module for the nodejs libs. This can be used to communicate with the Crownstone USB dongle.
 
-Will be usable on release 1.0.
+# Overview of the nodejs modules
+
+- https://github.com/crownstone/crownstone-lib-nodejs-core
+- https://github.com/crownstone/crownstone-lib-nodejs-uart
+- https://github.com/crownstone/crownstone-lib-nodejs-ble
+- https://github.com/crownstone/crownstone-lib-nodejs-cloud
+- https://github.com/crownstone/crownstone-lib-nodejs-sse
 
 # License
 
